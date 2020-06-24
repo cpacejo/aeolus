@@ -22,11 +22,11 @@ SUFFIX := $(shell uname -m | sed -e 's/^unknown/$//' -e 's/^i.86/$//' -e 's/^x86
 PREFIX ?= /usr/local
 BINDIR ?= $(PREFIX)/bin
 LIBDIR ?= $(PREFIX)/lib$(SUFFIX)
+PKG_CONF ?= pkg-config
 
 VERSION = 0.10.4
 CPPFLAGS += -MMD -MP -DVERSION=\"$(VERSION)\" -DLIBDIR=\"$(LIBDIR)\"
 CXXFLAGS += -O2 -Wall
-CXXFLAGS += -march=native
 
 
 all:	aeolus aeolus_x11.so aeolus_txt.so
@@ -46,7 +46,7 @@ $(AEOLUS_O):
 XIFACE_O =	styles.o mainwin.o midiwin.o audiowin.o instrwin.o editwin.o \
 	midimatrix.o multislider.o functionwin.o xiface.o addsynth.o
 aeolus_x11.so:	CPPFLAGS += -D_REENTRANT
-aeolus_x11.so:	CPPFLAGS += $(shell pkg-config --cflags freetype2)
+aeolus_x11.so:	CPPFLAGS += $(shell $(PKG_CONF) --cflags freetype2)
 aeolus_x11.so:	CXXFLAGS += -shared -fPIC
 aeolus_x11.so:	LDFLAGS += -shared
 aeolus_x11.so:	LDLIBS += -lclthreads -lclxclient -lpthread -lXft -lX11
@@ -75,7 +75,6 @@ install:	aeolus aeolus_x11.so aeolus_txt.so
 	install -m 755 aeolus $(DESTDIR)$(BINDIR)
 	install -m 755 aeolus_x11.so $(DESTDIR)$(LIBDIR)
 	install -m 755 aeolus_txt.so $(DESTDIR)$(LIBDIR)
-	ldconfig $(PREFIX)/$(LIBDIR)
 
 
 clean:
