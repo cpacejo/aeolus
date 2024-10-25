@@ -18,17 +18,34 @@
 // ----------------------------------------------------------------------------
 
 
-#include <math.h>
+#ifndef __AUDIO_COREAUDIO_H
+#define __AUDIO_COREAUDIO_H
 
-// fast approximation for 2^x
-float exp2ap (float x)
+
+#include <AudioToolbox/AudioToolbox.h>
+#include "audio.h"
+
+class Audio_coreaudio : public Audio
 {
-    int i;
+public:
 
-    i = (int)(floor (x));
-    x -= i;
-//    return ldexp (1 + x * (0.66 + 0.34 * x), i);
-    return ldexp (1 + x * (0.6930 + x * (0.2416 + x * (0.0517 + x * 0.0137))), i);
-}
+    Audio_coreaudio (const char *jname, Lfq_u32 *qnote, Lfq_u32 *qcomm, int fsamp, int fsize);
+    virtual ~Audio_coreaudio (void);
 
+private:
+   
+    void  init (int fsamp, int fsize);
+    void close ();
+    virtual void thr_main (void) {}
+    void coreaudio_callback(int nframes, AudioBufferList*);
+    static OSStatus coreaudio_static_callback(void *,
+                      AudioUnitRenderActionFlags *,
+                      const AudioTimeStamp *,
+                      UInt32, UInt32, AudioBufferList *);
+
+    AudioUnit       _coreaudio_handle;
+};
+
+
+#endif
 

@@ -28,7 +28,14 @@
 #include <clthreads.h>
 #include <dlfcn.h>
 #include "audio.h"
-#include "imidi.h"
+#include "audio_jack.h"
+#if __linux__
+# include "audio_alsa.h"
+# include "imidi_alsa.h"
+#elif __APPLE__
+# include "audio_coreaudio.h"
+# include "imidi_coremidi.h"
+#endif
 #include "model.h"
 #include "slave.h"
 #include "iface.h"
@@ -36,6 +43,8 @@
 
 #ifdef __linux__
 static const char *options = "htuAJBM:N:S:I:W:d:r:p:n:s:";
+#elif __APPLE__
+static const char *options = "htuCJBM:N:S:I:W:s:r:p:";
 #else
 static const char *options = "htuJBM:N:S:I:W:s:";
 #endif
@@ -44,6 +53,7 @@ static bool  t_opt = false;
 static bool  u_opt = false;
 static bool  A_opt = false;
 static bool  B_opt = false;
+static bool  C_opt = false;
 static int   r_val = 48000;
 static int   p_val = 1024;
 static int   n_val = 2;
@@ -85,6 +95,11 @@ static void help (void)
     fprintf (stderr, "    -p <period>        Period size [1024]\n");
     fprintf (stderr, "    -n <nfrags>        Number of fragments [2]\n\n");
 #endif
+#if __APPLE__
+    fprintf (stderr, "  -C                 Use CoreAudio rather than Jack\n");
+    fprintf (stderr, "    -r <rate>          Sample frequency [48000]\n");
+    fprintf (stderr, "    -p <period>        Period size [1024]\n");
+#endif
     exit (1);
 }
 
@@ -112,6 +127,7 @@ static void procoptions (int ac, char *av [], const char *where)
  	case 'A' : A_opt = true;  break;
 	case 'J' : A_opt = false; break;
 	case 'B' : B_opt = true; break;
+        case 'C' : C_opt = true; break;
         case 'r' : r_val = atoi (optarg); break;
         case 'p' : p_val = atoi (optarg); break;
         case 'n' : n_val = atoi (optarg); break;
@@ -210,15 +226,22 @@ int main (int ac, char *av [])
         return 1;
     }
 
-    audio = new Audio (N_val, &note_queue, &comm_queue);
+    audio = NULL;
 #ifdef __linux__
-    if (A_opt) audio->init_alsa (d_val, r_val, p_val, n_val);
-    else       audio->init_jack (s_val, B_opt, &midi_queue);
-#else
-    audio->init_jack (s_val, B_opt, &midi_queue);
+    if (A_opt)
+        audio = new Audio_alsa(N_val, &note_queue, &comm_queue, d_val, r_val, p_val, n_val);
+#elif __APPLE__
+    if (C_opt)
+        audio = new Audio_coreaudio (N_val, &note_queue, &comm_queue, r_val, p_val);
 #endif
+    if (!audio)
+        audio = new Audio_jack (N_val, &note_queue, &comm_queue, s_val, B_opt, &midi_queue);
     model = new Model (&comm_queue, &midi_queue, audio->midimap (), audio->appname (), S_val, I_val, W_val, u_opt);
-    imidi = new Imidi (&note_queue, &midi_queue, audio->midimap (), audio->appname ());
+#if __linux__
+    imidi = new Imidi_alsa (&note_queue, &midi_queue, audio->midimap (), audio->appname ());
+#elif __APPLE__
+    imidi = new Imidi_coremidi (&note_queue, &midi_queue, audio->midimap (), audio->appname ());
+#endif
     slave = new Slave ();
     iface = so_create (ac, av);
 

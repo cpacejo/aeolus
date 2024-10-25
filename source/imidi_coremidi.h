@@ -18,17 +18,29 @@
 // ----------------------------------------------------------------------------
 
 
-#include <math.h>
+#ifndef __IMIDI_COREMIDI_H
+#define __IMIDI_COREMIDI_H
 
-// fast approximation for 2^x
-float exp2ap (float x)
+#include "imidi.h"
+#include <CoreMIDI/MIDIServices.h>
+
+class Imidi_coremidi : public Imidi
 {
-    int i;
+public:
 
-    i = (int)(floor (x));
-    x -= i;
-//    return ldexp (1 + x * (0.66 + 0.34 * x), i);
-    return ldexp (1 + x * (0.6930 + x * (0.2416 + x * (0.0517 + x * 0.0137))), i);
-}
+    Imidi_coremidi (Lfq_u32 *qnote, Lfq_u8 *qmidi, uint16_t *midimap, const char *appname);
 
+private:
+    void thr_main (void) override;
 
+    void on_open_midi (void) override;
+    void on_close_midi (void) override;
+    void on_terminate() override;
+    
+    static void coremidi_callback(const MIDIPacketList *, void *, void*);
+
+    MIDIClientRef   _handle;
+    MIDIEndpointRef _endpoint;
+};
+
+#endif

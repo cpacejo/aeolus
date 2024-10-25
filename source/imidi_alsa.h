@@ -18,17 +18,28 @@
 // ----------------------------------------------------------------------------
 
 
-#include <math.h>
+#ifndef __IMIDI_ALSA_H
+#define __IMIDI_ALSA_H
 
-// fast approximation for 2^x
-float exp2ap (float x)
+#include "imidi.h"
+#include <alsa/asoundlib.h>
+
+class Imidi_alsa : public Imidi
 {
-    int i;
+public:
+    Imidi_alsa (Lfq_u32 *qnote, Lfq_u8 *qmidi, uint16_t *midimap, const char *appname);
 
-    i = (int)(floor (x));
-    x -= i;
-//    return ldexp (1 + x * (0.66 + 0.34 * x), i);
-    return ldexp (1 + x * (0.6930 + x * (0.2416 + x * (0.0517 + x * 0.0137))), i);
-}
+protected:
+    virtual void on_open_midi (void);
+    virtual void on_close_midi (void);
+    virtual void on_terminate (void);
 
+private:
+    virtual void thr_main (void);
+    void proc_midi (void);
 
+    int             _opport;
+    snd_seq_t      *_handle;
+};
+
+#endif

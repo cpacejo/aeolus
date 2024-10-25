@@ -18,17 +18,28 @@
 // ----------------------------------------------------------------------------
 
 
-#include <math.h>
+#ifndef __AUDIO_ALSA_H
+#define __AUDIO_ALSA_H
 
-// fast approximation for 2^x
-float exp2ap (float x)
+#include "audio.h"
+#include <zita-alsa-pcmi.h>
+
+class Audio_alsa : public Audio
 {
-    int i;
+public:
 
-    i = (int)(floor (x));
-    x -= i;
-//    return ldexp (1 + x * (0.66 + 0.34 * x), i);
-    return ldexp (1 + x * (0.6930 + x * (0.2416 + x * (0.0517 + x * 0.0137))), i);
-}
+    Audio_alsa (const char *jname, Lfq_u32 *qnote, Lfq_u32 *qcomm, const char *device, int fsamp, int fsize, int nfrag);
+    virtual ~Audio_alsa (void);
 
+private:
+
+    void  init (const char *device, int fsamp, int fsize, int nfrag);
+    void close (void);
+    virtual void thr_main (void);
+
+    Alsa_pcmi      *_alsa_handle;
+};
+
+
+#endif
 
