@@ -21,6 +21,7 @@
 #include <algorithm>
 #include <math.h>
 #include <memory>
+#include <stop_token>
 #include <utility>
 #include "audio.h"
 #include "messages.h"
@@ -32,7 +33,7 @@ Audio::Audio (const char *name, Lfq_u32 *qnote, Lfq_u32 *qcomm) :
     _appname (name),
     _qnote (qnote),
     _qcomm (qcomm),
-    _running (false),
+    _running (std::nostopstate),
     _abspri (0),
     _relpri (0),
     _nplay (0),

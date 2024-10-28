@@ -25,7 +25,7 @@ PKG_CONF ?= pkg-config
 
 VERSION = 0.10.4
 CPPFLAGS += -MMD -MP -DVERSION=\"$(VERSION)\" -DLIBDIR=\"$(LIBDIR)\"
-CXXFLAGS += -std=c++17 -O2 -Wall
+CXXFLAGS += -std=c++20 -O2 -Wall
 
 
 .PHONY: all install clean
@@ -41,6 +41,8 @@ aeolus: LDFLAGS += -L$(LIBDIR)
 aeolus:	$(AEOLUS_O)
 	$(CXX) $(LDFLAGS) -o $@ $(AEOLUS_O) $(LDLIBS)
 addsynth.o:	CPPFLAGS += -fPIC -D_REENTRANT
+audiowin.o editwin.o instrwin.o mainwin.o midiwin.o: \
+	CXXFLAGS += -Wno-deprecated-enum-enum-conversion
 $(AEOLUS_O):
 -include $(AEOLUS_O:%.o=%.d)
 

@@ -23,6 +23,7 @@
 
 #include <atomic>
 #include <memory>
+#include <stop_token>
 #include "asection.h"
 #include "division.h"
 #include "lfqueue.h"
@@ -103,7 +104,7 @@ protected:
     uint16_t        _midimap [16];
     Lfq_u32        *_qnote; 
     Lfq_u32        *_qcomm; 
-    std::atomic <bool> _running;
+    std::stop_source _running;
 
     int             _policy;
     int             _abspri;

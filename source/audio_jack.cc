@@ -124,8 +124,11 @@ void Audio_jack::jack_static_shutdown (void *arg)
 
 void Audio_jack::jack_shutdown (void)
 {
-    _running.store (false, std::memory_order_relaxed);
-    send_event (EV_EXIT, 1);
+    if (_running.stop_possible ())
+    {
+        _running.request_stop ();
+	send_event (EV_EXIT, 1);
+    }
 }
 
 
