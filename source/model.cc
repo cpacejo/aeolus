@@ -1116,7 +1116,7 @@ int Model::read_instr (void)
                       while (*p && *p != '$')
                         ++p;
                       *p = 0;
-                      if (i < sizeof(count)/sizeof(*count) && strlen(I->_label) + strlen(count[i]) < max_len)
+                      if (i < static_cast<int>(sizeof(count)/sizeof(*count)) && strlen(I->_label) + strlen(count[i]) < static_cast<std::size_t>(max_len))
                         strcat(I->_label, count[i]);
                     }
 #else

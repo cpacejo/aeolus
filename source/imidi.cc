@@ -23,11 +23,11 @@
 Imidi::Imidi (Lfq_u32 *qnote, Lfq_u8 *qmidi, uint16_t *midimap, const char *appname) :
     A_thread ("Imidi"),
     _appname (appname),
+    _client(0),
+    _ipport(0),
     _qnote(qnote),
     _qmidi(qmidi),
-    _midimap (midimap),
-    _client(0),
-    _ipport(0)
+    _midimap (midimap)
 {
 }
 
