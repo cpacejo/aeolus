@@ -21,15 +21,18 @@
 #ifndef __REVERB_H
 #define __REVERB_H
 
+#include <memory>
+
 
 class Delelm
 {
 private:
 
     friend class Reverb;
-    
-    void init (int size, float fb);
-    void fini (void);
+
+    Delelm () = default;
+    Delelm (int size, float fb);
+
     void set_t60mf (float tmf);
     void set_t60lo (float tlo, float _wlo);
     void set_t60hi (float thi, float chi);
@@ -38,7 +41,7 @@ private:
 
     int        _i;
     int        _size;
-    float     *_line;
+    std::unique_ptr <float []> _line;
     float      _fb;
     float      _gmf;
     float      _glo;
@@ -53,9 +56,10 @@ private:
 class Reverb
 {
 public:
-    
-    void init (float rate);
-    void fini (void);
+
+    Reverb () = default;
+    Reverb (float rate);
+
     void process (int n, float gain, float *R, float *W, float *X, float *Y, float *Z);
 
     void set_delay (float del);
@@ -66,7 +70,7 @@ public:
 private:
 
     void print (void);
-    float  *_line;
+    std::unique_ptr <float []> _line;
     int     _size;
     int     _idel;
     int     _i;

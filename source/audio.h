@@ -21,6 +21,7 @@
 #ifndef __AUDIO_H
 #define __AUDIO_H
 
+#include <memory>
 #include "asection.h"
 #include "division.h"
 #include "lfqueue.h"
@@ -34,7 +35,7 @@ class Audio : public A_thread
 public:
 
     Audio (const char *jname, Lfq_u32 *qnote, Lfq_u32 *qcomm);
-    virtual ~Audio (void);
+    virtual ~Audio ();
     void  start (void);
 
     const char  *appname (void) const { return _appname; }
@@ -113,8 +114,8 @@ protected:
     bool            _bform;
     int             _nasect;
     int             _ndivis;
-    Asection       *_asectp [NASECT];
-    Division       *_divisp [NDIVIS];
+    std::unique_ptr <Asection> _asectp [NASECT];
+    std::unique_ptr <Division> _divisp [NDIVIS];
     Reverb          _reverb;
     float          *_outbuf [8];
     uint16_t        _keymap [NNOTES];

@@ -19,26 +19,19 @@
 
 
 #include <stdio.h>
-#include <string.h>
 #include <math.h>
+#include <memory>
 #include "reverb.h"
 
 
-void Delelm::init (int size, float fb)
+Delelm::Delelm (int size, float fb)
 {
     _size = size;
-    _line = new float [size];
-    memset (_line, 0, size * sizeof (float));
+    _line = std::make_unique <float []> (size);
     _i = 0;
     _fb = fb;
     _slo = 0;
     _shi = 0;
-}
-
-
-void Delelm::fini (void)
-{
-    delete[] _line;
 }
 
 
@@ -113,29 +106,21 @@ float Reverb::_feedb [16] =
 };
 
 
-void Reverb::init (float rate)
+Reverb::Reverb (float rate)
 {
     int m;
 
     _rate = rate;
     _size = (int)(0.15f * rate);
-    _line = new float [_size];
-    memset (_line, 0, _size * sizeof (float));
+    _line = std::make_unique <float []> (_size);
     _i = 0;
     m = (rate < 64e3) ? 1 : 2;    
-    for (int i = 0; i < 16; i++) _delm [i].init (m * _sizes [i], _feedb [i]);
+    for (int i = 0; i < 16; i++) _delm [i] = Delelm (m * _sizes [i], _feedb [i]);
     _x0 = _x1 = _x2 = _x3 = _x4 = _x5 = _x6 = _x7 = _z = 0;
     set_delay (0.05);
     set_t60mf (4.0f);
     set_t60lo (5.0f, 250.0f);
     set_t60hi (2.0f, 4e3f);
-}
-
-
-void Reverb::fini (void)
-{
-    delete[] _line;
-    for (int i = 0; i < 16; i++) _delm [i].fini ();
 }
 
 

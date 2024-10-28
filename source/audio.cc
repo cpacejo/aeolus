@@ -19,6 +19,8 @@
 
 
 #include <math.h>
+#include <memory>
+#include <utility>
 #include "audio.h"
 #include "messages.h"
 
@@ -42,13 +44,8 @@ Audio::Audio (const char *name, Lfq_u32 *qnote, Lfq_u32 *qcomm) :
 }
 
 
-Audio::~Audio (void)
+Audio::~Audio ()
 {
-    int i;
-
-    for (i = 0; i < _nasect; i++) delete _asectp [i];
-    for (i = 0; i < _ndivis; i++) delete _divisp [i];
-    _reverb.fini ();
 }
 
 
@@ -69,7 +66,7 @@ void Audio::init_audio (void)
     _audiopar [STPOSIT]._min = -1.0f;
     _audiopar [STPOSIT]._max =  1.0f;
 
-    _reverb.init (_fsamp);
+    _reverb = Reverb (_fsamp);
     _reverb.set_t60mf (_revtime);
     _reverb.set_t60lo (_revtime * 1.50f, 250.0f);
     _reverb.set_t60hi (_revtime * 0.50f, 3e3f);
@@ -77,7 +74,7 @@ void Audio::init_audio (void)
     _nasect = NASECT;
     for (i = 0; i < NASECT; i++)
     {
-        _asectp [i] = new Asection ((float) _fsamp);
+        _asectp [i] = std::make_unique <Asection> ((float) _fsamp);
         _asectp [i]->set_size (_revsize);
     }
     _hold = KMAP_ALL;
@@ -318,12 +315,12 @@ void Audio::proc_mesg (void)
 	    case MT_NEW_DIVIS:
 	    {
 	        M_new_divis  *X = (M_new_divis *) M;
-                Division     *D = new Division (_asectp [X->_asect], (float) _fsamp);
+                std::unique_ptr <Division> D = std::make_unique <Division> (_asectp [X->_asect].get (), (float) _fsamp);
                 D->set_div_mask (X->_keybd);
                 D->set_swell (X->_swell);
                 D->set_tfreq (X->_tfreq);
                 D->set_tmodd (X->_tmodd);
-                _divisp [_ndivis] = D;
+                _divisp [_ndivis] = std::move (D);
                 _ndivis++;
                 break; 
 	    }
