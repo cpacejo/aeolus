@@ -19,42 +19,26 @@
 
 
 #include <assert.h>
+#include <memory>
 #include "lfqueue.h"
 
 
 Lfq_u8::Lfq_u8 (int size) : _size (size), _mask (_size - 1), _nwr (0), _nrd (0)
 {
     assert (!(_size & _mask));
-    _data = new uint8_t [_size];
+    _data = std::make_unique <uint8_t []> (_size);
 }
-
-Lfq_u8::~Lfq_u8 (void)
-{
-    delete[] _data;
-} 
 
 
 Lfq_u16::Lfq_u16 (int size) : _size (size), _mask (_size - 1), _nwr (0), _nrd (0)
 {
     assert (!(_size & _mask));
-    _data = new uint16_t [_size];
+    _data = std::make_unique <uint16_t []> (_size);
 }
-
-Lfq_u16::~Lfq_u16 (void)
-{
-    delete[] _data;
-} 
 
 
 Lfq_u32::Lfq_u32 (int size) : _size (size), _mask (_size - 1), _nwr (0), _nrd (0)
 {
     assert (!(_size & _mask));
-    _data = new uint32_t [_size];
+    _data = std::make_unique <uint32_t []> (_size);
 }
-
-Lfq_u32::~Lfq_u32 (void)
-{
-    delete[] _data;
-} 
-
-

@@ -22,6 +22,7 @@
 #define __LFQUEUE_H
 
 
+#include <memory>
 #include <stdint.h>
 
 
@@ -30,7 +31,6 @@ class Lfq_u8
 public:
 
     Lfq_u8 (int size);
-    ~Lfq_u8 (void); 
 
     int       write_avail (void) const { return _size - _nwr + _nrd; } 
     void      write_commit (int n) { _nwr += n; }
@@ -42,7 +42,7 @@ public:
 
 private:
 
-    uint8_t * _data;
+    std::unique_ptr <uint8_t []> _data;
     int       _size;
     int       _mask;
     int       _nwr;
@@ -55,7 +55,6 @@ class Lfq_u16
 public:
 
     Lfq_u16 (int size);
-    ~Lfq_u16 (void); 
 
     int       write_avail (void) const { return _size - _nwr + _nrd; } 
     void      write_commit (int n) { _nwr += n; }
@@ -67,7 +66,7 @@ public:
 
 private:
 
-    uint16_t *_data;
+    std::unique_ptr <uint16_t []> _data;
     int       _size;
     int       _mask;
     int       _nwr;
@@ -80,7 +79,6 @@ class Lfq_u32
 public:
 
     Lfq_u32 (int size);
-    ~Lfq_u32 (void); 
 
     int       write_avail (void) const { return _size - _nwr + _nrd; } 
     void      write_commit (int n) { _nwr += n; }
@@ -92,7 +90,7 @@ public:
 
 private:
 
-    uint32_t *_data;
+    std::unique_ptr <uint32_t []> _data;
     int       _size;
     int       _mask;
     int       _nwr;
