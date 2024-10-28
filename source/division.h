@@ -31,7 +31,6 @@ class Division
 public:
 
     Division (Asection *asect, float fsam);
-    ~Division (void);
 
     void set_rank (int ind, Rankwave *W, int pan, int del);
     void set_swell (float stat) { _swel = 0.2 + 0.8 * stat * stat; }

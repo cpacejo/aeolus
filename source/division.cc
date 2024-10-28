@@ -18,8 +18,8 @@
 // ----------------------------------------------------------------------------
 
 
+#include <algorithm>
 #include <math.h>
-#include <string.h>
 #include "division.h"
 
 
@@ -40,18 +40,13 @@ Division::Division (Asection *asect, float fsam) :
 }
 
 
-Division::~Division (void)
-{
-}
-
-
 void Division::process (void) 
 {
     int    i;
     float  d, g, t;
     float  *p, *q; 
 
-    memset (_buff, 0, NCHANN * PERIOD * sizeof (float));
+    std::fill_n (_buff, NCHANN * PERIOD, 0);
     for (i = 0; i < _nrank; i++) _ranks [i]->play (1);
 
     g = _swel;
