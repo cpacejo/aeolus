@@ -28,6 +28,8 @@ CPPFLAGS += -MMD -MP -DVERSION=\"$(VERSION)\" -DLIBDIR=\"$(LIBDIR)\"
 CXXFLAGS += -std=c++14 -O2 -Wall
 
 
+.PHONY: all install clean
+
 all:	aeolus aeolus_x11.so aeolus_txt.so
 
 
