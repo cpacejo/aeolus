@@ -18,6 +18,7 @@
 // ----------------------------------------------------------------------------
 
 
+#include <atomic>
 #include <memory>
 #include "audio_alsa.h"
 #include "messages.h"
@@ -49,7 +50,7 @@ void Audio_alsa::init (const char *device, int fsamp, int fsize, int nfrag)
     init_audio ();
     _outbuf_storage = std::make_unique <float []> (_nplay * fsize);
     for (int i = 0; i < _nplay; i++) _outbuf [i] = &_outbuf_storage [i * fsize];
-    _running = true;
+    _running.store (true, std::memory_order_relaxed);
     if (thr_start (_policy = SCHED_FIFO, _relpri = -20, 0))
     {
         fprintf (stderr, "Warning: can't run ALSA thread in RT mode.\n");
@@ -64,7 +65,7 @@ void Audio_alsa::init (const char *device, int fsamp, int fsize, int nfrag)
 
 void Audio_alsa::close ()
 {
-    _running = false;
+    _running.store (false, std::memory_order_relaxed);
     get_event (1 << EV_EXIT);
 }
 
@@ -75,7 +76,7 @@ void Audio_alsa::thr_main (void)
 
     _alsa_handle->pcm_start ();
 
-    while (_running)
+    while (_running.load (std::memory_order_relaxed))
     {
 	k = _alsa_handle->pcm_wait ();  
         proc_queue (_qnote);

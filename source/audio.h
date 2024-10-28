@@ -21,6 +21,7 @@
 #ifndef __AUDIO_H
 #define __AUDIO_H
 
+#include <atomic>
 #include <memory>
 #include "asection.h"
 #include "division.h"
@@ -102,7 +103,7 @@ protected:
     uint16_t        _midimap [16];
     Lfq_u32        *_qnote; 
     Lfq_u32        *_qcomm; 
-    volatile bool   _running;
+    std::atomic <bool> _running;
 
     int             _policy;
     int             _abspri;
