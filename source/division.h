@@ -22,6 +22,7 @@
 #define __DIVISION_H
 
 
+#include <memory>
 #include "asection.h"
 #include "rankwave.h"
 
@@ -32,7 +33,7 @@ public:
 
     Division (Asection *asect, float fsam);
 
-    void set_rank (int ind, Rankwave *W, int pan, int del);
+    void set_rank (int ind, std::unique_ptr <Rankwave> W, int pan, int del);
     void set_swell (float stat) { _swel = 0.2 + 0.8 * stat * stat; }
     void set_tfreq (float freq) { _w = 6.283184f * PERIOD * freq / _fsam; }
     void set_tmodd (float modd) { _m = modd; }
@@ -50,7 +51,7 @@ public:
 private:
    
     Asection  *_asect;
-    Rankwave  *_ranks [NRANKS];
+    std::unique_ptr <Rankwave> _ranks [NRANKS];
     int        _nrank;
     int        _dmask;
     int        _trem;

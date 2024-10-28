@@ -20,6 +20,8 @@
 
 #include <algorithm>
 #include <math.h>
+#include <memory>
+#include <utility>
 #include "division.h"
 
 
@@ -92,21 +94,17 @@ void Division::process (void)
 
 // Set or replace the Rankwave for a Rank.
 //
-void Division::set_rank (int ind, Rankwave *W, int pan, int del)
+void Division::set_rank (int ind, std::unique_ptr <Rankwave> W, int pan, int del)
 {
-    Rankwave *C;
-
-    C = _ranks [ind];
-    if (C)
+    if (_ranks [ind])
     {
-        W->_nmask = C->_nmask | KMAP_SET;
-        delete C;
+        W->_nmask = _ranks [ind]->_nmask | KMAP_SET;
     }
     else W->_nmask = KMAP_SET;
-    _ranks [ind] = W;
+    _ranks [ind] = std::move (W);
     del = (int)(1e-3f * del * _fsam / PERIOD);
     if (del > 31) del = 31;
-    W->set_param (_buff, del, pan);
+    _ranks [ind]->set_param (_buff, del, pan);
     if (_nrank < ++ind) _nrank = ind;
 }
 
@@ -120,7 +118,7 @@ void Division::update (int note, int16_t mask)
 
     for (r = 0; r < _nrank; r++)
     {
-	W = _ranks [r];
+	W = _ranks [r].get ();
         if (W->_nmask & KMAP_ALL)
 	{     
 	    if (mask & W->_nmask) W->note_on (note + 36);
@@ -138,7 +136,7 @@ void Division::update (uint16_t *keys)
 
     for (r = 0; r < _nrank; r++)
     {
-	W = _ranks [r];
+	W = _ranks [r].get ();
         if (W->_nmask & KMAP_SET)
 	{
             W->_nmask ^= KMAP_SET;
@@ -173,7 +171,7 @@ void Division::set_div_mask (int bit)
     _dmask |= b;
     for (r = 0; r < _nrank; r++)
     {
-	W = _ranks [r];
+	W = _ranks [r].get ();
         if (W->_nmask & d)
         {
             W->_nmask |= b;
@@ -194,7 +192,7 @@ void Division::clr_div_mask (int bit)
     _dmask &= ~b;
     for (r = 0; r < _nrank; r++)
     {
-	W = _ranks [r];
+	W = _ranks [r].get ();
         if (W->_nmask & d)
         {
             W->_nmask &= ~b;
@@ -207,7 +205,7 @@ void Division::clr_div_mask (int bit)
 void Division::set_rank_mask (int ind, int bit)
 {
     uint16_t  b = 1 << bit;
-    Rankwave *W = _ranks [ind];
+    Rankwave *W = _ranks [ind].get ();
     if (bit == NKEYBD) b |= _dmask;
     W->_nmask |= b;
     W->_nmask |= KMAP_SET;
@@ -217,7 +215,7 @@ void Division::set_rank_mask (int ind, int bit)
 void Division::clr_rank_mask (int ind, int bit)
 {
     uint16_t  b = 1 << bit;
-    Rankwave *W = _ranks [ind];
+    Rankwave *W = _ranks [ind].get ();
     if (bit == NKEYBD) b |= _dmask;
     W->_nmask &= ~b;
     W->_nmask |= KMAP_SET;

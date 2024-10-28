@@ -18,6 +18,7 @@
 // ----------------------------------------------------------------------------
 
 
+#include <algorithm>
 #include <math.h>
 #include <memory>
 #include <utility>
@@ -268,11 +269,11 @@ void Audio::proc_synth (int nframes)
     {
         on_synth_period(k);
 
-        memset (W, 0, PERIOD * sizeof (float));
-        memset (X, 0, PERIOD * sizeof (float));
-        memset (Y, 0, PERIOD * sizeof (float));
-        memset (Z, 0, PERIOD * sizeof (float));
-        memset (R, 0, PERIOD * sizeof (float));
+        std::fill_n (W, PERIOD, 0);
+        std::fill_n (X, PERIOD, 0);
+        std::fill_n (Y, PERIOD, 0);
+        std::fill_n (Z, PERIOD, 0);
+        std::fill_n (R, PERIOD, 0);
 
         for (j = 0; j < _ndivis; j++) _divisp [j]->process ();
         for (j = 0; j < _nasect; j++) _asectp [j]->process (_audiopar [VOLUME]._val, W, X, Y, R);
@@ -328,7 +329,7 @@ void Audio::proc_mesg (void)
 	    case MT_LOAD_RANK:
 	    {
 	        M_def_rank *X = (M_def_rank *) M;
-                _divisp [X->_divis]->set_rank (X->_rank, X->_rwave,  X->_synth->_pan, X->_synth->_del);  
+                _divisp [X->_divis]->set_rank (X->_rank, std::unique_ptr <Rankwave> (X->_rwave), X->_synth->_pan, X->_synth->_del);
                 send_event (TO_MODEL, M);
                 M = 0;
 	        break;
