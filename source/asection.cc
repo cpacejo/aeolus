@@ -18,9 +18,9 @@
 // ----------------------------------------------------------------------------
 
 
-#include <stdio.h>
-#include <string.h>
+#include <algorithm>
 #include <math.h>
+#include <memory>
 #include "asection.h"
 
 
@@ -30,19 +30,12 @@ extern float exp2ap (float);
 #define N (MIXLEN * PERIOD)
 
 
-void Diffuser::init (int size, float c)
+Diffuser::Diffuser (int size, float c)
 {
     _size = size;
-    _data = new float [size];
-    memset (_data, 0, size * sizeof (float));
+    _data = std::make_unique <float []> (size);
     _i = 0;
     _c = c;
-}
-
-
-void Diffuser::fini (void)
-{
-    delete[] _data;
 }
 
 
@@ -57,15 +50,14 @@ float Asection::_refl [16] =
 
 Asection::Asection (float fsam) : _fsam (fsam)
 {
-    _base = new float [NCHANN * N]; 
-    memset (_base, 0, NCHANN * N * sizeof (float));
+    _base = std::make_unique <float []> (NCHANN * N);
 
     _offs0 = 0;
     _sw = _sx = _sy = 0.0f;
-    _dif0.init ((int)(fsam * 0.017f), 0.5f);
-    _dif1.init ((int)(fsam * 0.029f), 0.5f);
-    _dif2.init ((int)(fsam * 0.023f), 0.5f);
-    _dif3.init ((int)(fsam * 0.013f), 0.5f);
+    _dif0 = Diffuser ((int)(fsam * 0.017f), 0.5f);
+    _dif1 = Diffuser ((int)(fsam * 0.029f), 0.5f);
+    _dif2 = Diffuser ((int)(fsam * 0.023f), 0.5f);
+    _dif3 = Diffuser ((int)(fsam * 0.013f), 0.5f);
 
     _apar [AZIMUTH]._val =  0.0f;
     _apar [AZIMUTH]._min = -0.5f;
@@ -82,16 +74,6 @@ Asection::Asection (float fsam) : _fsam (fsam)
     _apar [REVERB]._val = 0.32f;
     _apar [REVERB]._min = 0.00f;
     _apar [REVERB]._max = 1.00f;
-}
-
-
-Asection::~Asection (void) 
-{
-    delete[] _base;
-    _dif0.fini ();
-    _dif1.fini ();
-    _dif2.fini ();
-    _dif3.fini ();
 }
 
 
@@ -130,7 +112,7 @@ void Asection::process (float vol, float *W, float *X, float *Y, float *R)
     d = g - 0.5f;
     gx2 = gw * (s - d);
     gy2 = gw * (s + d);
-    p = _base + _offs0;
+    p = _base.get () + _offs0;
     gr = 0.5f * _apar [REVERB]._val;
     for (i = 0; i < PERIOD; i++)
     {
@@ -147,7 +129,7 @@ void Asection::process (float vol, float *W, float *X, float *Y, float *R)
     }
 
     gr = vol * _apar [REFLECT]._val;
-    p = _base;
+    p = _base.get ();
     for (i = 0; i < PERIOD; i++)
     {
         t0 = _dif0.process (p [_offs [1]] + p [_offs  [5]] + p [_offs [11]] + p [_offs [15]] + 1e-20f);  
@@ -175,10 +157,10 @@ void Asection::process (float vol, float *W, float *X, float *Y, float *R)
 
     _offs0 = (_offs0 + PERIOD) & (N - 1);
     for (i = 0; i < 16; i++) _offs [i] = ((_offs [i] + PERIOD) & (N - 1)) + (i >> 2) * N;
-    p = _base + _offs0;
-    memset (p + 0 * N, 0, PERIOD * sizeof (float)); 
-    memset (p + 1 * N, 0, PERIOD * sizeof (float)); 
-    memset (p + 2 * N, 0, PERIOD * sizeof (float)); 
-    memset (p + 3 * N, 0, PERIOD * sizeof (float)); 
+    p = _base.get () + _offs0;
+    std::fill_n (p + 0 * N, PERIOD, 0);
+    std::fill_n (p + 1 * N, PERIOD, 0);
+    std::fill_n (p + 2 * N, PERIOD, 0);
+    std::fill_n (p + 3 * N, PERIOD, 0);
 }
 

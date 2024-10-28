@@ -22,6 +22,7 @@
 #define __ASECTION_H
 
 
+#include <memory>
 #include "global.h"
 
 
@@ -33,9 +34,10 @@
 class Diffuser
 {
 public:
-    
-    void init (int size, float c);
-    void fini (void);
+
+    Diffuser () = default;
+    Diffuser (int size, float c);
+
     int  size (void) { return _size; }
     float process (float x)
     {
@@ -50,7 +52,7 @@ public:
 
 private:
 
-    float     *_data;
+    std::unique_ptr <float []> _data;
     int        _size;
     int        _i;
     float      _c;
@@ -62,9 +64,8 @@ class Asection
 public:
 
     Asection (float fsam);
-    ~Asection (void); 
 
-    float *get_wptr (void) { return _base + _offs0; }
+    float *get_wptr (void) { return _base.get () + _offs0; }
     Fparm *get_apar (void) { return _apar; }
 
     void set_size (float size);
@@ -79,7 +80,7 @@ private:
     int      _offs0;
     int      _offs [16];
     float    _fsam;
-    float   *_base;
+    std::unique_ptr <float []> _base;
     float    _sw;
     float    _sx;
     float    _sy;
