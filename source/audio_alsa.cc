@@ -18,25 +18,25 @@
 // ----------------------------------------------------------------------------
 
 
+#include <memory>
 #include "audio_alsa.h"
 #include "messages.h"
 
 Audio_alsa::Audio_alsa (const char *name, Lfq_u32 *qnote, Lfq_u32 *qcomm, const char *device, int fsamp, int fsize, int nfrag) :
-    Audio(name, qnote, qcomm),
-    _alsa_handle (0)
+    Audio(name, qnote, qcomm)
 {
     init(device, fsamp, fsize, nfrag);
 }
 
 
-Audio_alsa::~Audio_alsa (void)
+Audio_alsa::~Audio_alsa ()
 {
     if (_alsa_handle) close ();
 }
 
 void Audio_alsa::init (const char *device, int fsamp, int fsize, int nfrag)
 {
-    _alsa_handle = new Alsa_pcmi (device, 0, 0, fsamp, fsize, nfrag);
+    _alsa_handle = std::make_unique <Alsa_pcmi> (device, nullptr, nullptr, fsamp, fsize, nfrag);
     if (_alsa_handle->state () < 0)
     {
         fprintf (stderr, "Error: can't connect to ALSA.\n");
@@ -47,7 +47,8 @@ void Audio_alsa::init (const char *device, int fsamp, int fsize, int nfrag)
     _fsamp = fsamp;
     if (_nplay > 2) _nplay = 2;
     init_audio ();
-    for (int i = 0; i < _nplay; i++) _outbuf [i] = new float [fsize];
+    _outbuf_storage = std::make_unique <float []> (_nplay * fsize);
+    for (int i = 0; i < _nplay; i++) _outbuf [i] = &_outbuf_storage [i * fsize];
     _running = true;
     if (thr_start (_policy = SCHED_FIFO, _relpri = -20, 0))
     {
@@ -65,8 +66,6 @@ void Audio_alsa::close ()
 {
     _running = false;
     get_event (1 << EV_EXIT);
-    for (int i = 0; i < _nplay; i++) delete[] _outbuf [i];
-    delete _alsa_handle;
 }
 
 

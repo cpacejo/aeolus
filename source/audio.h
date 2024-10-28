@@ -118,6 +118,7 @@ protected:
     std::unique_ptr <Division> _divisp [NDIVIS];
     Reverb          _reverb;
     float          *_outbuf [8];
+    std::unique_ptr <float[]> _outbuf_storage;
     uint16_t        _keymap [NNOTES];
     Fparm           _audiopar [4];
     float           _revsize;

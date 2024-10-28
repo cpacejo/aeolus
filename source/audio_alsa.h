@@ -21,6 +21,7 @@
 #ifndef __AUDIO_ALSA_H
 #define __AUDIO_ALSA_H
 
+#include <memory>
 #include "audio.h"
 #include <zita-alsa-pcmi.h>
 
@@ -29,7 +30,7 @@ class Audio_alsa : public Audio
 public:
 
     Audio_alsa (const char *jname, Lfq_u32 *qnote, Lfq_u32 *qcomm, const char *device, int fsamp, int fsize, int nfrag);
-    virtual ~Audio_alsa (void);
+    virtual ~Audio_alsa ();
 
 private:
 
@@ -37,7 +38,7 @@ private:
     void close (void);
     virtual void thr_main (void);
 
-    Alsa_pcmi      *_alsa_handle;
+    std::unique_ptr <Alsa_pcmi> _alsa_handle;
 };
 
 
