@@ -25,7 +25,7 @@ PKG_CONF ?= pkg-config
 
 VERSION = 0.10.4
 CPPFLAGS += -MMD -MP -DVERSION=\"$(VERSION)\" -DLIBDIR=\"$(LIBDIR)\"
-CXXFLAGS += -O2 -Wall
+CXXFLAGS += -std=c++14 -O2 -Wall
 
 
 all:	aeolus aeolus_x11.so aeolus_txt.so
