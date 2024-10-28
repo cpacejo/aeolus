@@ -1,6 +1,6 @@
 // ----------------------------------------------------------------------------
 //
-//  Copyright (C) 2003-2013 Fons Adriaensen <fons@linuxaudio.org>
+//  Copyright (C) 2003-2022 Fons Adriaensen <fons@linuxaudio.org>
 //    
 //  This program is free software; you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -48,7 +48,7 @@ Divis::Divis (void) :
 
 
 Keybd::Keybd (void) :
-    _flags (0)
+    _pedal (false)
 {
     *_label = 0;
 }
@@ -79,16 +79,16 @@ Model::Model (Lfq_u32      *qcomm,
               Lfq_u8       *qmidi,
 	      uint16_t     *midimap,
               const char   *appname,
-              const char   *stops,
-              const char   *instr,
-              const char   *waves,
+              const char   *stopsdir,
+              const char   *instrdir,
+              const char   *wavesdir,
               bool          uhome) :
     A_thread ("Model"),
     _qcomm (qcomm),
     _qmidi (qmidi), 
     _midimap (midimap),
     _appname (appname),
-    _stops (stops),
+    _stopsdir (stopsdir),
     _uhome (uhome),
     _ready (false), 
     _nasect (0),
@@ -103,8 +103,8 @@ Model::Model (Lfq_u32      *qcomm,
     _audio (0),
     _midi (0)
 {
-    sprintf (_instr, "%s/%s", stops, instr);
-    sprintf (_waves, "%s/%s", stops, waves);
+    sprintf (_instrdir, "%s/%s", stopsdir, instrdir);
+    sprintf (_wavesdir, "%s/%s", stopsdir, wavesdir);
     memset (_midimap, 0, 16 * sizeof (uint16_t));
     memset (_preset, 0, NBANK * NPRES * sizeof (Preset *));
 }
@@ -190,7 +190,7 @@ void Model::proc_mesg (ITC_mesg *M)
     }
     case MT_IFC_GRCLR:
     {
-	// Reset a group of stops.
+	// Reset a group of stopsdir.
         M_ifc_ifelm *X = (M_ifc_ifelm *) M;
         clr_group (X->_group);
 	break;
@@ -219,8 +219,7 @@ void Model::proc_mesg (ITC_mesg *M)
     case MT_IFC_ANOFF:
     {
 	// All notes off.
-	M_ifc_anoff *X = (M_ifc_anoff *) M;
-        midi_off (X->_bits);
+        midi_off (NKEYBD);
 	break;
     }
     case MT_IFC_MCSET:
@@ -310,7 +309,7 @@ void Model::proc_mesg (ITC_mesg *M)
         Rank       *R = find_rank (X->_group, X->_ifelm); 
         if (_ready && R)
 	{
-            X->_synth = R->_sdef;
+            X->_synth = R->_synth;
             send_event (TO_IFACE, M);
             M = 0;
 	}
@@ -333,7 +332,7 @@ void Model::proc_mesg (ITC_mesg *M)
     {
 	// Load a rank into a division.
         M_def_rank *X = (M_def_rank *) M; 
-        _divis [X->_divis]._ranks [X->_rank]._wave = X->_wave;
+        _divis [X->_divis]._ranks [X->_rank]._rwave = X->_rwave;
 	break;
     }
     case MT_AUDIO_INFO:
@@ -390,7 +389,7 @@ void Model::proc_qmidi (void)
 	v = _qmidi->read (2);
 	_qmidi->read_commit (3);
 	c = t & 0x0F;
-        d = (_midimap [c] >>  8) & 7;
+        d = (_midimap [c] >> 4) & 15;
 	switch (t & 0xF0)
         {
 	case 0x90:
@@ -459,7 +458,7 @@ void Model::init_audio (void)
     {
         M = new M_new_divis (); 
         M->_flags = D->_flags;
-        M->_dmask = D->_dmask;
+        M->_keybd = D->_keybd;
         M->_asect = D->_asect;
         M->_swell = D->_param [Divis::SWELL]._val;
         M->_tfreq = D->_param [Divis::TFREQ]._val;
@@ -478,9 +477,9 @@ void Model::init_iface (void)
     Group        *G;
 
     M = new M_ifc_init; 
-    M->_stops  = _stops;
-    M->_waves  = _waves;
-    M->_instr  = _instr;
+    M->_stopsdir  = _stopsdir;
+    M->_wavesdir  = _wavesdir;
+    M->_instrdir  = _instrdir;
     M->_appid  = _appname;
     M->_client = _midi->_client;
     M->_ipport = _midi->_ipport;
@@ -493,7 +492,7 @@ void Model::init_iface (void)
     {
         K = _keybd + i;
 	M->_keybdd [i]._label = K->_label;
-	M->_keybdd [i]._flags = K->_flags;
+	M->_keybdd [i]._pedal = K->_pedal;
     }
     for (i = 0; i < NDIVIS; i++)
     {
@@ -574,24 +573,24 @@ void Model::proc_rank (int g, int i, int comm)
 #if MULTISTOP
       for( uint32_t* a = I->_action[0]; *a; ++a )
       {
-        d = (*a >> 16) & 255;
-        r = (*a >>  8) & 255;
+        d = (*a >>  8) & 255;
+        r = (*a >> 16) & 255;
 #else
-        d = (I->_action0 >> 16) & 255;
-        r = (I->_action0 >>  8) & 255;
+        d = (I->_action0 >>  8) & 255;
+        r = (I->_action0 >> 16) & 255;
 #endif
         R = _divis [d]._ranks + r;
         if (comm == MT_SAVE_RANK)
         {
-	    if (R->_wave->modif ())
+	    if (R->_rwave->modif ())
 	    {
 		M = new M_def_rank (comm);
    	        M->_fsamp = _audio->_fsamp;
 	        M->_fbase = _fbase;
 	        M->_scale = scales [_itemp]._data;
-	        M->_sdef  = R->_sdef;
-	        M->_wave  = R->_wave;
-  	        M->_path  = _waves;
+	        M->_synth = R->_synth;
+	        M->_rwave = R->_rwave;
+	        M->_path  = _wavesdir;
 	        send_event (TO_SLAVE, M);
 	    }
 	}
@@ -606,9 +605,9 @@ void Model::proc_rank (int g, int i, int comm)
 	    M->_fsamp = _audio->_fsamp;
 	    M->_fbase = _fbase;
 	    M->_scale = scales [_itemp]._data;
-	    M->_sdef  = R->_sdef;
-	    M->_wave  = R->_wave;
-	    M->_path  = _waves;
+	    M->_synth = R->_synth;
+	    M->_rwave = R->_rwave;
+	    M->_path  = _wavesdir;
 	    send_event (TO_SLAVE, M);
 	}
 #if MULTISTOP
@@ -749,7 +748,7 @@ void Model::set_dipar (int s, int d, int p, float v)
     if (_qcomm->write_avail () >= 2)
     {
 	u.f = v;
-	_qcomm->write (0, (17 << 24) | (d << 16) | (p << 8));
+	_qcomm->write (0, (17 << 24) | (p << 16) | (d << 8));
 	_qcomm->write (1, u.i);
         _qcomm->write_commit (2);
         send_event (TO_IFACE, new M_ifc_dipar (s, d, p, v));         
@@ -759,26 +758,17 @@ void Model::set_dipar (int s, int d, int p, float v)
 
 void Model::set_mconf (int i, uint16_t *d)
 {
-    int j, a, b;
-    
-    midi_off (127);
-    for (j = 0; j < 16; j++)
-    {
-        a = d [j];
-	b =  (a & 0x1000) ? (_keybd [a & 7]._flags & 127) : 0;
-        b |= a & 0x7700;
-        _midimap [j] = b;
-    }
+    midi_off (NKEYBD);
+    memcpy (_midimap, d, 16 * sizeof (uint16_t));
     send_event (TO_IFACE, new M_ifc_chconf (MT_IFC_MCSET, i, d));         
 }
 
 
-void Model::midi_off (int mask)
+void Model::midi_off (int keybd)
 {
-    mask &= 127;
     if (_qcomm->write_avail ())
     {
-        _qcomm->write (0, (2 << 24) | (mask << 16) | mask);
+        _qcomm->write (0, (2 << 24) | keybd);
         _qcomm->write_commit (1);
     }
 }
@@ -834,8 +824,8 @@ Rank *Model::find_rank (int g, int i)
         if (I->_action[0][1])
           return 0;
 #endif
-        d = (I->_action0 >> 16) & 255;
-        r = (I->_action0 >>  8) & 255;
+        d = (I->_action0 >>  8) & 255;
+        r = (I->_action0 >> 16) & 255;
         return _divis [d]._ranks + r;
     }
     return 0;
@@ -863,7 +853,7 @@ int Model::read_instr (void)
            BAD_SCOPE, BAD_ASECT, BAD_RANK, BAD_DIVIS, BAD_KEYBD, BAD_IFACE,
            BAD_STR1, BAD_STR2 };
 
-    sprintf (buff, "%s/definition", _instr);
+    sprintf (buff, "%s/definition", _instrdir);
     if (! (F = fopen (buff, "r"))) 
     {
 	fprintf (stderr, "Can't open '%s' for reading\n", buff);
@@ -930,8 +920,7 @@ int Model::read_instr (void)
                     k = _nkeybd++;
 		    K = _keybd + k; 
                     strcpy (K->_label, t1);
-                    K->_flags = 1 << k;
-                    if (p [1] == 'p') K->_flags |= HOLD_MASK | Keybd::IS_PEDAL;
+                    K->_pedal = (p [1] == 'p');
 		}
 	    }
 	}
@@ -957,7 +946,7 @@ int Model::read_instr (void)
                     if (_nasect < s) _nasect = s;
 		    D->_asect = s - 1;
                     D->_keybd = k - 1;
-		    if (k--) D->_dmask = _keybd [k]._flags & 127;
+		    if (k > 0) D->_dmask = 1 << (k - 1);
 		}
 	    }
 	}
@@ -1004,9 +993,9 @@ int Model::read_instr (void)
             else
 	    {
    	        q += n;
-                if (D->_nrank == Divis::NRANK) 
+                if (D->_nrank == NRANKS) 
 		{
-		    fprintf (stderr, "Line %d: can't create more than %d ranks per division\n", line, Divis::NRANK);
+		    fprintf (stderr, "Line %d: can't create more than %d ranks per division\n", line, NRANKS);
 		    stat = ERROR;
 		}
                 else if (strlen (t1) > 63) stat = BAD_STR1;
@@ -1014,7 +1003,7 @@ int Model::read_instr (void)
 		{
                     A = new Addsynth;
         	    strcpy (A->_filename, t1);
-                    if (A->load (_stops))
+                    if (A->load (_stopsdir))
 		    {
 			stat = ERROR;
 			delete A;
@@ -1025,8 +1014,8 @@ int Model::read_instr (void)
                         A->_del = d; 
 			R = D->_ranks + D->_nrank++; 
                         R->_count = 0;
-                        R->_sdef = A;
-                        R->_wave = 0;
+                        R->_synth = A;
+                        R->_rwave = 0;
 		    }
  		}
 	    }
@@ -1060,8 +1049,8 @@ int Model::read_instr (void)
 			strcpy (I->_mnemo, t1);
 			strcpy (I->_label, t2);
 			I->_type = Ifelm::TREMUL;  
-			I->_action0 = (16 << 24) | (d << 16) | 0;
-			I->_action1 = (16 << 24) | (d << 16) | 1;
+			I->_action0 = (16 << 24) | (d << 8) | 0;
+			I->_action1 = (16 << 24) | (d << 8) | 1;
 		    }
 		}
 	    }
@@ -1090,26 +1079,25 @@ int Model::read_instr (void)
                     r--;
 		    I = G->_ifelms + G->_nifelm++;
                     R = _divis [d]._ranks + r;
-                    strcpy (I->_label, R->_sdef->_stopname);
-                    strcpy (I->_mnemo, R->_sdef->_mnemonic);
+                    strcpy (I->_label, R->_synth->_stopname);
+                    strcpy (I->_mnemo, R->_synth->_mnemonic);
                     I->_keybd = k;
                     if (k >= 0)
 		    {
-                        I->_type = Ifelm::KBDRANK; 
-			k = _keybd [k]._flags & 127;
+                        I->_type = Ifelm::KBDRANK;
 		    }
 		    else
 		    {
-                        I->_type = Ifelm::DIVRANK; 
-			k = 128;
+                        I->_type = Ifelm::DIVRANK;
+                        k = NKEYBD;
 		    }
 #if MULTISTOP
                     int max_ranks = sizeof(*I->_action) / sizeof(**I->_action) - 1,
                         i = 0;
                     bool done = false;
                     do {
-                      I->_action[0][i] = (6 << 24) | (d << 16) | (r << 8) | k;
-                      I->_action[1][i] = (7 << 24) | (d << 16) | (r << 8) | k;
+                      I->_action[0][i] = (6 << 24) | (r << 16) | (d << 8) | k;
+                      I->_action[1][i] = (7 << 24) | (r << 16) | (d << 8) | k;
                       n = 0;
                       done = (sscanf(q, "%d%n", &r, &n) <= 0);
                       q += n;
@@ -1132,8 +1120,8 @@ int Model::read_instr (void)
                         strcat(I->_label, count[i]);
                     }
 #else
-                    I->_action0 = (6 << 24) | (d << 16) | (r << 8) | k;
-                    I->_action1 = (7 << 24) | (d << 16) | (r << 8) | k;
+                    I->_action0 = (6 << 24) | (r << 16) | (d << 8) | k;
+                    I->_action1 = (7 << 24) | (r << 16) | (d << 8) | k;
 #endif
     		}
 	    }
@@ -1159,9 +1147,9 @@ int Model::read_instr (void)
                     strcpy (I->_label, t2);
                     I->_type = Ifelm::COUPLER;
 	            I->_keybd = k;  
-                    k = _keybd [k]._flags & 127;
-                    I->_action0 = (4 << 24) | (d << 16) | k;
-                    I->_action1 = (5 << 24) | (d << 16) | k;
+                    // Action is clr / set division mask.
+                    I->_action0 = (4 << 24) | (d << 8) | k;
+                    I->_action1 = (5 << 24) | (d << 8) | k;
 		}
 	    }
 	}
@@ -1234,7 +1222,7 @@ int Model::write_instr (void)
     Ifelm         *I;
     Addsynth      *A;
 
-    sprintf (buff, "%s/definition", _instr);
+    sprintf (buff, "%s/definition", _instrdir);
     if (! (F = fopen (buff, "w"))) 
     {
 	fprintf (stderr, "Can't open '%s' for writing\n", buff);
@@ -1252,8 +1240,8 @@ int Model::write_instr (void)
     fprintf (F, "\n# Keyboards\n#\n");
     for (k = 0; k < _nkeybd; k++)
     {
-	if (_keybd [k]._flags & Keybd::IS_PEDAL) fprintf (F, "/pedal/new    %s\n", _keybd [k]._label);    
-        else                                     fprintf (F, "/manual/new   %s\n", _keybd [k]._label);
+	if (_keybd [k]._pedal) fprintf (F, "/pedal/new    %s\n", _keybd [k]._label);    
+        else                   fprintf (F, "/manual/new   %s\n", _keybd [k]._label);
     }
 
     fprintf (F, "\n# Divisions\n#\n");
@@ -1264,7 +1252,7 @@ int Model::write_instr (void)
         for (r = 0; r < D->_nrank; r++)
 	{
             R = D->_ranks + r;
-	    A = R->_sdef;
+	    A = R->_synth;
             fprintf (F, "/rank         %c %3d  %s\n", A->_pan, A->_del, A->_filename);        
 	} 
         if (D->_flags & Divis::HAS_SWELL) fprintf (F, "/swell\n");
@@ -1286,7 +1274,7 @@ int Model::write_instr (void)
 	    case Ifelm::DIVRANK:
 	    case Ifelm::KBDRANK:
                 k = I->_keybd;
-                d = (I->_action0 >> 16) & 255;
+                d = (I->_action0 >>  8) & 255;
 #if MULTISTOP
                 {
                   uint32_t *a = I->_action[0];
@@ -1299,19 +1287,19 @@ int Model::write_instr (void)
                   fprintf (F, "\n" );
                 }
 #else
-                r = (I->_action0 >>  8) & 255;
+                r = (I->_action0 >> 16) & 255;
                 fprintf (F, "/stop         %d   %d  %2d\n", k + 1, d + 1, r + 1);
 #endif
 		break;
 
 	    case Ifelm::COUPLER:
                 k = I->_keybd;
-                d = (I->_action0 >> 16) & 255;
+                d = (I->_action0 >> 8) & 255;
                 fprintf (F, "/coupler      %d   %d   %-7s  %s\n", k + 1, d + 1, I->_mnemo, I->_label);
 		break;
 
 	    case Ifelm::TREMUL:
-                d = (I->_action0 >> 16) & 255;
+                d = (I->_action0 >> 8) & 255;
                 D = _divis + d;  
                 fprintf (F, "/tremul       %d       %-7s  %s\n", d + 1, I->_mnemo, I->_label);
 		break;
@@ -1403,7 +1391,7 @@ int Model::read_presets (void)
     }
     else
     {
-	sprintf (name, "%s/presets", _instr);
+	sprintf (name, "%s/presets", _instrdir);
     }
     if (! (F = fopen (name, "r"))) 
     {
@@ -1418,7 +1406,6 @@ int Model::read_presets (void)
         fclose (F);
         return 1;
     }
-    printf ("Reading '%s'\n", name);
     n = RD2 (data + 14);
 
     if (fread (data, 256, 1, F) != 1)
@@ -1483,7 +1470,7 @@ int Model::write_presets (void)
     }
     else
     {
-	sprintf (name, "%s/presets", _instr);
+	sprintf (name, "%s/presets", _instrdir);
     }
     if (! (F = fopen (name, "w"))) 
     {

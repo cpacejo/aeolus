@@ -154,7 +154,7 @@ int Audio_jack::jack_callback (jack_nframes_t nframes)
 
 void Audio_jack::proc_jmidi (int tmax)
 {
-    int                 c, f, m, n, t, v;
+    int                 c, f, k, m, n, t, v;
     jack_midi_event_t   E;
 
     // Read and process MIDI commands from the JACK port.
@@ -169,10 +169,9 @@ void Audio_jack::proc_jmidi (int tmax)
         n = E.buffer [1];
 	v = E.buffer [2];
 	c = t & 0x0F;
-        m = _midimap [c] & 127;        // Keyboard and hold bits
-//        d = (_midimap [c] >>  8) & 7;  // Division number if (f & 2)
-        f = (_midimap [c] >> 12) & 7;  // Control enabled if (f & 4)
-
+        k = _midimap [c] & 15;
+        f = _midimap [c] >> 12;
+        
 	switch (t & 0xF0)
 	{
 	case 0x80:
@@ -198,7 +197,7 @@ void Audio_jack::proc_jmidi (int tmax)
 		}
 		else if (n <= 96)
 		{
-		    if (m) key_on (n - 36, m & _hold);
+		    if (f & 1) key_on (n - 36, 1 << k);
 		}
 	    }
 	    else
@@ -209,7 +208,7 @@ void Audio_jack::proc_jmidi (int tmax)
 		}
 		else if (n <= 96)
 		{
-		    if (m) key_off (n - 36, m & KEYS_MASK);
+		    if (f & 1) key_off (n - 36, 1 << k);
 		}
 	    }
 	    break;
@@ -217,33 +216,24 @@ void Audio_jack::proc_jmidi (int tmax)
 	case 0xB0: // Controller
 	    switch (n)
 	    {
-	    case MIDICTL_HOLD:
-		// Hold pedal.
-                if (m & HOLD_MASK)
-		{
-                    if (v > 63)
-                    {
-		        _hold = KEYS_MASK | HOLD_MASK;
-			cond_key_on (m, HOLD_MASK);
-		    }
-                    else
-		    {
-		        _hold = KEYS_MASK;
-			cond_key_off (HOLD_MASK, HOLD_MASK);
-		    }                    
-		}                    
-		break;
-
 	    case MIDICTL_ASOFF:
 		// All sound off, accepted on control channels only.
-		// Clears all keyboards, including held notes.
-		if (f & 4) cond_key_off (ALL_MASK, ALL_MASK);
+		// Clears all keyboards.
+                if (f & 4)
+                {
+                    m = KMAP_ALL;
+                    cond_key_off (m, m);
+                }
 		break;
 
 	    case MIDICTL_ANOFF:
 		// All notes off, accepted on channels controlling
-		// a keyboard. Does not clear held notes. 
-		if (m) cond_key_off (m, m);
+		// a keyboard.
+                if (f & 1)
+                {
+                    m = 1 << k;
+                    cond_key_off (m, m);
+                }
 		break;
 	
 	    case MIDICTL_BANK:	

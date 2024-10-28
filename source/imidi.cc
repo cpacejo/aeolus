@@ -1,6 +1,6 @@
 // ----------------------------------------------------------------------------
 //
-//  Copyright (C) 2003-2013 Fons Adriaensen <fons@linuxaudio.org>
+//  Copyright (C) 2003-2022 Fons Adriaensen <fons@linuxaudio.org>
 //    
 //  This program is free software; you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -60,12 +60,11 @@ void Imidi::terminate()
 
 void Imidi::proc_midi_event(const MidiEvent &ev)
 {
-    int              c, f, m, t, n, v, p;
+    int              c, f, k, t, n, v, p;
 
     c = ev.note.channel;
-    m = _midimap [c] & 127;        // Keyboard and hold bits
-//        d = (_midimap [c] >>  8) & 7;  // Division number if (f & 2)
-    f = (_midimap [c] >> 12) & 7;  // Control enabled if (f & 4)
+    k = _midimap [c] & 15;
+    f = _midimap [c] >> 12;
     t = ev.type;
 
     switch (t)
@@ -94,11 +93,11 @@ void Imidi::proc_midi_event(const MidiEvent &ev)
 	        }
                 else if (n <= 96)
 	        {
-                    if (m)
+                    if (f & 1)
 		    {
 	                if (_qnote->write_avail () > 0)
 	                {
-	                    _qnote->write (0, (1 << 24) | ((n - 36) << 8) | m);
+	                    _qnote->write (0, (1 << 24) | ((n - 36) << 16) | k);
                             _qnote->write_commit (1);
 	                } 
 		    }
@@ -112,11 +111,11 @@ void Imidi::proc_midi_event(const MidiEvent &ev)
 	        }
                 else if (n <= 96)
 	        {
-                    if (m)
+                    if (f & 1)
 		    {
 	                if (_qnote->write_avail () > 0)
 	                {
-	                    _qnote->write (0, ((n - 36) << 8) | m);
+	                    _qnote->write (0, (0 << 24) | ((n - 36) << 16) | k);
                             _qnote->write_commit (1);
 	                } 
 		    }
@@ -131,14 +130,14 @@ void Imidi::proc_midi_event(const MidiEvent &ev)
 	    {
 	    case MIDICTL_HOLD:
 		// Hold pedal.
-		if (m & HOLD_MASK)
-		{
-		    v = (v > 63) ? 9 : 8;
-	            if (_qnote->write_avail () > 0)
-	            {
-	                _qnote->write (0, (v << 24) | (m << 16));
+                if (f & 1)
+                {
+                    c = (v > 63) ? 9 : 8;
+                    if (_qnote->write_avail () > 0)
+                    {
+                        _qnote->write (0, (c << 24) | k);
                         _qnote->write_commit (1);
-	            } 
+                    }
 		}
 		break;
 
@@ -149,7 +148,7 @@ void Imidi::proc_midi_event(const MidiEvent &ev)
 		{
 	            if (_qnote->write_avail () > 0)
 	            {
-	                _qnote->write (0, (2 << 24) | ( ALL_MASK << 16) | ALL_MASK);
+	                _qnote->write (0, (2 << 24) | NKEYBD);
                         _qnote->write_commit (1);
 	            } 
 		}
@@ -158,11 +157,11 @@ void Imidi::proc_midi_event(const MidiEvent &ev)
             case MIDICTL_ANOFF:
 		// All notes off, accepted on channels controlling
 		// a keyboard. Does not clear held notes. 
-		if (m)
+		if (f & 1)
 		{
 	            if (_qnote->write_avail () > 0)
 	            {
-	                _qnote->write (0, (2 << 24) | (m << 16) | m);
+	                _qnote->write (0, (2 << 24) | k);
                         _qnote->write_commit (1);
 	            } 
 		}
