@@ -56,7 +56,7 @@ enum // GLOBAL LIMITS
 };
 
 
-#define MIDICTL_SWELL 7
+#define MIDICTL_SWELL 11
 #define SWELL_MIN 0.0f
 #define SWELL_MAX 1.0f
 #define SWELL_DEF 1.0f
@@ -73,7 +73,7 @@ enum // GLOBAL LIMITS
 
 #define MIDICTL_BANK   32
 #define MIDICTL_HOLD   64
-#define MIDICTL_IFELM  98
+#define MIDICTL_IFELM  80
 #define MIDICTL_ASOFF 120
 #define MIDICTL_ANOFF 123
 
