@@ -57,7 +57,7 @@ class Divis
 {
 public:
 
-    enum { HAS_SWELL = 1, HAS_TREM = 2 };
+    static constexpr int HAS_SWELL = 1, HAS_TREM = 2;
     enum { SWELL, TFREQ, TMODD, NPARAM };
 
     Divis (void);
@@ -112,7 +112,7 @@ class Group
 {
 public:
 
-    enum { NIFELM = NRANKS + 8 };
+    static constexpr int NIFELM = NRANKS + 8;
 
     Group (void);
 

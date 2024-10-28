@@ -103,10 +103,8 @@ class Prbsgen
 {
 public:
 
-    enum
-	{
-	    // Some polynomials for maximum length seqeunces.
- 
+    // Some polynomials for maximum length seqeunces.
+    static constexpr int
 	    G7  = 0x00000041,
 	    G8  = 0x0000008E,
 	    G15 = 0x00004001,
@@ -114,8 +112,7 @@ public:
 	    G23 = 0x00400010,
 	    G24 = 0x0080000D,
 	    G31 = 0x40000004,
-	    G32 = 0x80000057,
-	};
+	    G32 = 0x80000057;
 
     Prbsgen (void);
 

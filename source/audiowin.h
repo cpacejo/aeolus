@@ -52,8 +52,8 @@ public:
 
 private:
 
-    enum { XOFFS = 90, XSTEP = 215, YSIZE = 330 };
-    enum { NASECT = 4, ASECT_BIT0 = 8, ASECT_STEP = (1 << ASECT_BIT0), ASECT_MASK = (ASECT_STEP - 1) };
+    static constexpr int XOFFS = 90, XSTEP = 215, YSIZE = 330;
+    static constexpr int NASECT = 4, ASECT_BIT0 = 8, ASECT_STEP = (1 << ASECT_BIT0), ASECT_MASK = (ASECT_STEP - 1);
            
     virtual void handle_event (XEvent *);
     virtual void handle_callb (int, X_window *, XEvent *);

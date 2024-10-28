@@ -84,9 +84,11 @@ public:
  
 private:
 
+    static constexpr int N_PFTB = 11;
+
     enum {
 	    TAB_GEN, TAB_LEV, TAB_ATT, TAB_RAN,
-            B_APPL, B_MOFF, B_SAVE, B_LOAD, B_LNEW, B_PEDAL, B_PFTB, N_PFTB = 11
+            B_APPL, B_MOFF, B_SAVE, B_LOAD, B_LNEW, B_PEDAL, B_PFTB
          };
  
     virtual void handle_event (XEvent *xe);

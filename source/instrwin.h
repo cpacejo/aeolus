@@ -54,14 +54,15 @@ public:
 
 private:
 
-    enum { XSIZE = 840, YSIZE = 130 };
+    static constexpr int XSIZE = 840, YSIZE = 130;
 
     enum
     {
-        TEMP_DEC, TEMP_INC, FREQ_DEC, FREQ_INC, TUNE_EXE, TUNE_CAN,
-        NDIVIS = 8, DIVIS_BIT0 = 8, DIVIS_STEP = (1 << DIVIS_BIT0), DIVIS_MASK = (DIVIS_STEP - 1),
-        NTEMPE = 16
-    }; 
+        TEMP_DEC, TEMP_INC, FREQ_DEC, FREQ_INC, TUNE_EXE, TUNE_CAN
+    };
+
+    static constexpr int NDIVIS = 8, DIVIS_BIT0 = 8, DIVIS_STEP = (1 << DIVIS_BIT0), DIVIS_MASK = (DIVIS_STEP - 1),
+        NTEMPE = 16;
            
 
     virtual void handle_event (XEvent *);

@@ -43,8 +43,8 @@
 #include "lfqueue.h"
 
 
-enum // GLOBAL LIMITS 
-{
+// GLOBAL LIMITS
+static constexpr int
     NASECT = 4,
     NDIVIS = 8,
     NKEYBD = 8,
@@ -52,8 +52,7 @@ enum // GLOBAL LIMITS
     NRANKS = 32,
     NNOTES = 61,
     NBANK  = 32,
-    NPRES  = 32
-};
+    NPRES  = 32;
 
 
 #define MIDICTL_SWELL 11

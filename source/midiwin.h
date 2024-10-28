@@ -42,7 +42,7 @@ public:
 
 private:
 
-    enum { XSIZE = 840, YSIZE = 130 };
+    static constexpr int XSIZE = 840, YSIZE = 130;
 
     virtual void handle_event (XEvent *);
     virtual void handle_callb (int, X_window *, XEvent *);

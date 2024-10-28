@@ -52,7 +52,7 @@ public:
 
 private:
 
-    enum { NFUNC = 2 };
+    static constexpr int NFUNC = 2;
 
     virtual void handle_event (XEvent *xe);
 

@@ -46,7 +46,7 @@ public:
     Splashwin (X_window *parent, int xp, int yp);
     ~Splashwin (void);
 
-    enum { XSIZE = 500, YSIZE = 300 };
+    static constexpr int XSIZE = 500, YSIZE = 300;
 
 private:
 
@@ -77,9 +77,10 @@ private:
     enum
     {
 	B_DECB, B_INCB, B_DECM, B_INCM,
-        B_MRCL, B_PREV, B_NEXT, B_MSTO, B_MINS, B_MDEL, B_CANC,
-        GROUP_BIT0 = 8, GROUP_STEP = (1 << GROUP_BIT0), GROUP_MASK = (GROUP_STEP - 1),
-    }; 
+        B_MRCL, B_PREV, B_NEXT, B_MSTO, B_MINS, B_MDEL, B_CANC
+    };
+
+    static constexpr int GROUP_BIT0 = 8, GROUP_STEP = (1 << GROUP_BIT0), GROUP_MASK = (GROUP_STEP - 1);
            
     virtual void handle_event (XEvent *);
     virtual void handle_callb (int, X_window *, XEvent *);

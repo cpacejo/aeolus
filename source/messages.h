@@ -37,11 +37,19 @@ enum
     FM_IMIDI = 11,
     FM_AUDIO = 12,
     FM_TXTIP = 13,
+};
+
+enum
+{
     TO_SLAVE =  8,
     TO_IFACE =  9,
     TO_MODEL = 10,
     TO_IMIDI = 11,
     TO_AUDIO = 12,
+};
+
+enum
+{
     EV_RLINE = 0,
     EV_XWIN  = 16,
     EV_QMIDI = 24,

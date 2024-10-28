@@ -43,7 +43,7 @@ public:
 
 private:
 
-    enum { XL = 180, XR = 5, YT = 5, YB = 22, DX = 22, DY = 22 };
+    static constexpr int XL = 180, XR = 5, YT = 5, YB = 22, DX = 22, DY = 22;
     
     void expose (XExposeEvent *E);
     void redraw (void);

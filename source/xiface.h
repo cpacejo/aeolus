@@ -42,10 +42,6 @@ public:
 private:
 
            
-    enum { DIVBASE = 0x100, DIVSTEP = 0x100 };
-    enum { VOLUM, RSIZE, RTIME, STPOS };
-    enum { DIFG, DRYS, REFL, REVB, TRFR, TRMD, BACK = 0x80 };
-
     virtual void thr_main (void);
     virtual void handle_callb (int, X_window*, _XEvent*);
 
