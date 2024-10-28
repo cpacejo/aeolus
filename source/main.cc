@@ -18,6 +18,7 @@
 // ----------------------------------------------------------------------------
 
 
+#include <memory>
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -70,7 +71,7 @@ static const char *s_val = 0;
 static Lfq_u32  note_queue (256);
 static Lfq_u32  comm_queue (256);
 static Lfq_u8   midi_queue (1024);
-static Iface   *iface;
+static std::unique_ptr <Iface> iface;
 
 
 static void help (void)
@@ -190,10 +191,10 @@ static void sigint_handler (int)
 int main (int ac, char *av [])
 {
     ITC_ctrl       itcc;
-    Audio         *audio;
-    Imidi         *imidi;
-    Model         *model;
-    Slave         *slave;
+    std::unique_ptr <Audio> audio;
+    std::unique_ptr <Imidi> imidi;
+    std::unique_ptr <Model> model;
+    std::unique_ptr <Slave> slave;
     void          *so_handle;
     iface_cr      *so_create;
     char           s [1024];
@@ -224,40 +225,39 @@ int main (int ac, char *av [])
         return 1;
     }
 
-    audio = NULL;
 #ifdef __linux__
     if (A_opt)
-        audio = new Audio_alsa(N_val, &note_queue, &comm_queue, d_val, r_val, p_val, n_val);
+        audio = std::make_unique <Audio_alsa> (N_val, &note_queue, &comm_queue, d_val, r_val, p_val, n_val);
 #elif __APPLE__
     if (C_opt)
-        audio = new Audio_coreaudio (N_val, &note_queue, &comm_queue, r_val, p_val);
+        audio = std::make_unique <Audio_coreaudio> (N_val, &note_queue, &comm_queue, r_val, p_val);
 #endif
     if (!audio)
-        audio = new Audio_jack (N_val, &note_queue, &comm_queue, s_val, B_opt, &midi_queue);
-    model = new Model (&comm_queue, &midi_queue, audio->midimap (), audio->appname (), S_val, I_val, W_val, u_opt);
+        audio = std::make_unique <Audio_jack> (N_val, &note_queue, &comm_queue, s_val, B_opt, &midi_queue);
+    model = std::make_unique <Model> (&comm_queue, &midi_queue, audio->midimap (), audio->appname (), S_val, I_val, W_val, u_opt);
 #if __linux__
-    imidi = new Imidi_alsa (&note_queue, &midi_queue, audio->midimap (), audio->appname ());
+    imidi = std::make_unique <Imidi_alsa> (&note_queue, &midi_queue, audio->midimap (), audio->appname ());
 #elif __APPLE__
-    imidi = new Imidi_coremidi (&note_queue, &midi_queue, audio->midimap (), audio->appname ());
+    imidi = std::make_unique <Imidi_coremidi> (&note_queue, &midi_queue, audio->midimap (), audio->appname ());
 #endif
-    slave = new Slave ();
-    iface = so_create (ac, av);
+    slave = std::make_unique <Slave> ();
+    iface = std::unique_ptr <Iface> (so_create (ac, av));
 
-    ITC_ctrl::connect (audio, EV_EXIT,  &itcc, EV_EXIT);    
-    ITC_ctrl::connect (audio, EV_QMIDI, model, EV_QMIDI);    
-    ITC_ctrl::connect (audio, TO_MODEL, model, FM_AUDIO);    
-    ITC_ctrl::connect (imidi, EV_EXIT,  &itcc, EV_EXIT);    
-    ITC_ctrl::connect (imidi, EV_QMIDI, model, EV_QMIDI);    
-    ITC_ctrl::connect (imidi, TO_MODEL, model, FM_IMIDI);    
-    ITC_ctrl::connect (model, EV_EXIT,  &itcc, EV_EXIT);    
-    ITC_ctrl::connect (model, TO_AUDIO, audio, FM_MODEL);    
-    ITC_ctrl::connect (model, TO_SLAVE, slave, FM_MODEL);    
-    ITC_ctrl::connect (model, TO_IFACE, iface, FM_MODEL);    
-    ITC_ctrl::connect (slave, EV_EXIT,  &itcc, EV_EXIT);    
-    ITC_ctrl::connect (slave, TO_AUDIO, audio, FM_SLAVE);    
-    ITC_ctrl::connect (slave, TO_MODEL, model, FM_SLAVE);    
-    ITC_ctrl::connect (iface, EV_EXIT,  &itcc, EV_EXIT);    
-    ITC_ctrl::connect (iface, TO_MODEL, model, FM_IFACE);    
+    ITC_ctrl::connect (audio.get (), EV_EXIT,  &itcc, EV_EXIT);
+    ITC_ctrl::connect (audio.get (), EV_QMIDI, model.get (), EV_QMIDI);
+    ITC_ctrl::connect (audio.get (), TO_MODEL, model.get (), FM_AUDIO);
+    ITC_ctrl::connect (imidi.get (), EV_EXIT,  &itcc, EV_EXIT);
+    ITC_ctrl::connect (imidi.get (), EV_QMIDI, model.get (), EV_QMIDI);
+    ITC_ctrl::connect (imidi.get (), TO_MODEL, model.get (), FM_IMIDI);
+    ITC_ctrl::connect (model.get (), EV_EXIT,  &itcc, EV_EXIT);
+    ITC_ctrl::connect (model.get (), TO_AUDIO, audio.get (), FM_MODEL);
+    ITC_ctrl::connect (model.get (), TO_SLAVE, slave.get (), FM_MODEL);
+    ITC_ctrl::connect (model.get (), TO_IFACE, iface.get (), FM_MODEL);
+    ITC_ctrl::connect (slave.get (), EV_EXIT,  &itcc, EV_EXIT);
+    ITC_ctrl::connect (slave.get (), TO_AUDIO, audio.get (), FM_SLAVE);
+    ITC_ctrl::connect (slave.get (), TO_MODEL, model.get (), FM_SLAVE);
+    ITC_ctrl::connect (iface.get (), EV_EXIT,  &itcc, EV_EXIT);
+    ITC_ctrl::connect (iface.get (), TO_MODEL, model.get (), FM_IFACE);
 
     audio->start ();
     if (imidi->thr_start (SCHED_FIFO, audio->relpri () - 20, 0))
@@ -289,11 +289,11 @@ int main (int ac, char *av [])
 	}
     }
 
-    delete audio;
-    delete imidi;
-    delete model;
-    delete slave;
-    delete iface;
+    audio.reset ();
+    imidi.reset ();
+    model.reset ();
+    slave.reset ();
+    iface.reset ();
     dlclose (so_handle);
  
     return 0;
