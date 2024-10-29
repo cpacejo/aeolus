@@ -23,6 +23,7 @@
 
 
 #include <clxclient.h>
+#include <memory>
 
 
 class Multislider : public X_window
@@ -30,7 +31,6 @@ class Multislider : public X_window
 public:
 
     Multislider (X_window *parent, X_callback *callb, int xp, int yp, unsigned long grid, unsigned long mark);
-    ~Multislider (void);
  
     virtual void handle_event (XEvent *xe);
 
@@ -77,8 +77,8 @@ private:
     int             _dx;
     int             _wx;
     int             _yr;
-    int            *_yc;
-    char           *_st;
+    std::unique_ptr <int []> _yc;
+    std::unique_ptr <char []> _st;
     int             _move;
     int             _draw; 
     int             _im;

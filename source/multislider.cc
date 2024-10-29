@@ -18,6 +18,7 @@
 // ----------------------------------------------------------------------------
 
 
+#include <memory>
 #include <stdlib.h>
 #include <stdio.h>
 #include "multislider.h"
@@ -31,19 +32,12 @@ Multislider::Multislider (X_window *parent, X_callback *callb, int xp, int yp,
     X_window (parent, xp, yp, 100, 100, Colors.func_bg),
     _callb (callb),
     _bgnd (Colors.func_bg),
-    _grid (grid), _mark (mark), _yc (0), _st (0), 
+    _grid (grid), _mark (mark),
     _move (-1), _draw (-1)
 {
     x_add_events (ExposureMask | ButtonMotionMask | ButtonPressMask | ButtonReleaseMask);
     x_set_bit_gravity (NorthWestGravity);
     _im = -1;
-}
-
-
-Multislider::~Multislider (void)
-{
-    delete[] _yc;
-    delete[] _st;
 }
 
 
@@ -80,10 +74,8 @@ void Multislider::set_xparam (int n, int x0, int dx, int wx)
     _dx = dx;
     _wx = wx;
     _xs = _n * _dx + 2 * x0;
-    delete[] _yc;
-    delete[] _st;
-    _yc = new int [n];
-    _st = new char [n];
+    _yc = std::make_unique <int []> (n);
+    _st = std::make_unique <char []> (n);
 }
 
 
