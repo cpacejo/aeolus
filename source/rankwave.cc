@@ -18,10 +18,13 @@
 // ----------------------------------------------------------------------------
 
 
+#include <algorithm>
+#include <memory>
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
+#include <utility>
 #include "rankwave.h"
 
 #ifndef REPETITION_POINTS // sp
@@ -31,8 +34,8 @@
 extern float exp2ap (float);
 
 Rngen   Pipewave::_rgen;
-float  *Pipewave::_arg = 0;
-float  *Pipewave::_att = 0;
+std::unique_ptr <float []> Pipewave::_arg;
+std::unique_ptr <float []> Pipewave::_att;
 
 
 void Pipewave::initstatic (float fsamp)
@@ -41,9 +44,9 @@ void Pipewave::initstatic (float fsamp)
 
     if (_arg) return;
     k = (int)(fsamp);
-    _arg = new float [k];
+    _arg = std::make_unique <float []> (k);
     k = (int)(0.5f * fsamp);
-    _att = new float [k];
+    _att = std::make_unique <float []> (k);
 }   
 
 
@@ -60,7 +63,7 @@ void Pipewave::play (void)
     {
 	if (! p) 
 	{
-	    p = _p0;
+	    p = _p0.get();
             _y_p = 0.0f;
             _z_p = 0.0f;
         }
@@ -210,11 +213,10 @@ void Pipewave::genwave (Addsynth *D, int n, float fsamp, float fpipe)
     // k is the number of samples to allocate
     k = _l0 + _l1 + _k_s * (PERIOD + 4);       
 
-    delete[] _p0;
-    _p0 = new float [k];
-    _p1 = _p0 + _l0; // begin of loop
+    _p0 = std::make_unique <float []> (k);
+    _p1 = _p0.get () + _l0; // begin of loop
     _p2 = _p1 + _l1; // end of loop
-    memset (_p0, 0, k * sizeof (float)); 
+    std::fill_n (_p0.get(), k, 0);
 
     // _k_r is release duration in PERIODs
     _k_r = (int)(ceilf (D->_n_dct.vi (n) * fsamp / PERIOD) + 1);
@@ -370,7 +372,7 @@ void Pipewave::save (FILE *F)
     d.i32 [7] = 0;
     fwrite (&d, 1, 32, F);
     k = _l0 +_l1 + _k_s * (PERIOD + 4);
-    fwrite (_p0, k, sizeof (float), F);   
+    fwrite (_p0.get(), k, sizeof (float), F);
 }
 
 
@@ -394,11 +396,10 @@ void Pipewave::load (FILE *F)
     _d_a = d.flt [5];
     _d_w = d.flt [6];
     k = _l0 +_l1 + _k_s * (PERIOD + 4);
-    delete[] _p0;
-    _p0 = new float [k];
-    _p1 = _p0 + _l0;
+    _p0 = std::make_unique <float []> (k);
+    _p1 = _p0.get() + _l0;
     _p2 = _p1 + _l1;
-    fread (_p0, k, sizeof (float), F);
+    fread (_p0.get(), k, sizeof (float), F);
 }
 
 
@@ -406,13 +407,7 @@ void Pipewave::load (FILE *F)
 
 Rankwave::Rankwave (int n0, int n1) : _n0 (n0), _n1 (n1), _list (0), _modif (false)
 {
-    _pipes = new Pipewave [n1 - n0 + 1];
-}
-
-
-Rankwave::~Rankwave (void)
-{
-    delete[] _pipes;
+    _pipes = std::make_unique <Pipewave []> (n1 - n0 + 1);
 }
 
 
@@ -423,16 +418,16 @@ namespace
 struct RepetitionPoint
 {
     RepetitionPoint(int note, int num, int den)
-    : note(note), num(num), den(den), next(nullptr) {}
-    ~RepetitionPoint() { delete next; }
+    : note(note), num(num), den(den) {}
     int note, num, den;
-    RepetitionPoint *next;
+    std::unique_ptr <RepetitionPoint> next;
 };
       
-RepetitionPoint *ParseRepetitions(const char* s)
+std::unique_ptr <RepetitionPoint> ParseRepetitions(const char* s)
 {
     char tag = '$';
-    RepetitionPoint *r = 0, *cur = 0;
+    std::unique_ptr <RepetitionPoint> r;
+    RepetitionPoint *cur = nullptr;
     while (*s && *s != tag)
       ++s;
     if (*s)
@@ -456,16 +451,16 @@ RepetitionPoint *ParseRepetitions(const char* s)
           }
         }
       }
-      RepetitionPoint *p = new RepetitionPoint(note, num + wholes * den, den);
+      std::unique_ptr <RepetitionPoint> p = std::make_unique <RepetitionPoint> (note, num + wholes * den, den);
       if (!r)
       {
-        r = p;
-        cur = p;
+        r = std::move(p);
+        cur = r.get();
       }
       else
       {
-        cur->next = p;
-        cur = p;
+        cur->next = std::move(p);
+        cur = cur->next.get();
       }
     }
     return r;
@@ -484,7 +479,8 @@ void Rankwave::gen_waves (Addsynth *D, float fsamp, float fbase, float *scale)
 #if REPETITION_POINTS
     float fn = D->_fn, fd = D->_fd,
           fbase_adj = fbase * D->_fn / (D->_fd * scale[9]);
-    RepetitionPoint* points = ParseRepetitions( D->_comments ), *p = points;
+    std::unique_ptr <RepetitionPoint> points = ParseRepetitions( D->_comments );
+    RepetitionPoint *p = points.get();
     for (int i = _n0; i <= _n1; i++)
     {
         if( p && i == p->note )
@@ -494,12 +490,12 @@ void Rankwave::gen_waves (Addsynth *D, float fsamp, float fbase, float *scale)
           D->_fd = p->num;
           if( D->_fn > 0 && D->_fd > 0 )
             fbase_adj = fbase * D->_fn / (D->_fd * scale[9]);
-          p = p->next;
+          p = p->next.get();
         }
         if( fbase_adj > 0 )
           _pipes [i - _n0].genwave (D, i - _n0, fsamp, ldexpf (fbase_adj * scale [i % 12], i / 12 - 5));
     }
-    delete points;
+    points.reset ();
     D->_fn = fn;
     D->_fd = fd;
 #else
@@ -526,7 +522,7 @@ void Rankwave::set_param (float *out, int del, int pan)
     case 'R': a = 2, b = 2; break;
     default:  a = 4, b = 0;
     }
-    for (n = _n0, P = _pipes; n <= _n1; n++, P++) P->_out = out + ((n % a) + b) * PERIOD;
+    for (n = _n0, P = _pipes.get(); n <= _n1; n++, P++) P->_out = out + ((n % a) + b) * PERIOD;
 }
 
 
@@ -568,12 +564,12 @@ int Rankwave::save (const char *path, Addsynth *D, float fsamp, float fbase, flo
         return 1;
     }
    
-    memset (data, 0, 16);
+    std::fill_n (data, 16, 0);
     strcpy (data, "ae1");
     data [4] = 2;
     fwrite (data, 1, 16, F);
 
-    memset (data, 0, 64);
+    std::fill_n (data, 64, 0);
     data [0] = 0;
     data [1] = 0;
     data [2] = 0;
@@ -584,10 +580,10 @@ int Rankwave::save (const char *path, Addsynth *D, float fsamp, float fbase, flo
     data [7] = 0;
     *((float *)(data +  8)) = fsamp;
     *((float *)(data + 12)) = fbase;
-    memcpy (data + 16, scale, 12 * sizeof (float));    
+    std::copy_n (scale, 12, data + 16);
     fwrite (data, 1, 64, F);
 
-    for (i = _n0, P = _pipes; i <= _n1; i++, P++) P->save (F);
+    for (i = _n0, P = _pipes.get(); i <= _n1; i++, P++) P->save (F);
 
     fclose (F);
 
@@ -681,7 +677,7 @@ int Rankwave::load (const char *path, Addsynth *D, float fsamp, float fbase, flo
         }
     }
 
-    for (i = _n0, P = _pipes; i <= _n1; i++, P++) P->load (F);
+    for (i = _n0, P = _pipes.get(); i <= _n1; i++, P++) P->load (F);
   
     fclose (F);
 

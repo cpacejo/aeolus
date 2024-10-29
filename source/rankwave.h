@@ -22,6 +22,8 @@
 #define __RANKWAVE_H
 
 
+#include <cstddef>
+#include <memory>
 #include "addsynth.h"
 #include "rngen.h"
 
@@ -33,17 +35,17 @@ class Pipewave
 {
 private:
 
-    Pipewave (void) :
-        _p0 (0), _p1 (0), _p2 (0), _l1 (0),
+    Pipewave () :
+        _p1 (0), _p2 (0), _l1 (0),
         _k_s (0),  _k_r (0), 
         _m_r (0), _d_r (0), _d_a (0), _d_w (0),
 	_link (0), _sbit (0), _sdel (0), 
         _p_p (0), _p_f(0), _y_p (0), _z_p (0), _p_r (0), _y_r (0), _g_r (0), _i_r (0)
     {}     
 
-    ~Pipewave (void) { delete[] _p0; }
-
-    friend class Rankwave;   
+    friend class Rankwave;
+    friend std::unique_ptr <Pipewave> std::make_unique <Pipewave> ();
+    friend std::unique_ptr <Pipewave []> std::make_unique <Pipewave []> (std::size_t);
 
     void genwave (Addsynth *D, int n, float fsamp, float fpipe);
     void save (FILE *F);
@@ -53,7 +55,7 @@ private:
     static void looplen (float f, float fsamp, int lmax, int *aa, int *bb);
     static void attgain (int n, float p);
 
-    float     *_p0;    // attack start
+    std::unique_ptr <float []> _p0;    // attack start
     float     *_p1;    // loop start
     float     *_p2;    // loop end
     int32_t    _l0;    // attack length
@@ -82,8 +84,8 @@ private:
     static void initstatic (float fsamp);
 
     static   Rngen   _rgen;
-    static   float  *_arg; // time parameter during waveform generation
-    static   float  *_att; // harmonic's attack gain time series
+    static   std::unique_ptr <float []> _arg; // time parameter during waveform generation
+    static   std::unique_ptr <float []> _att; // harmonic's attack gain time series
 };
 
 
@@ -92,12 +94,11 @@ class Rankwave
 public:
 
     Rankwave (int n0, int n1);
-    ~Rankwave (void);
 
     void note_on (int n)
     {
         if ((n < _n0) || (n > _n1)) return;
-        Pipewave *P = _pipes + (n - _n0);
+        Pipewave *P = &_pipes [n - _n0];
         P->_sbit = _sbit;   
         if (! (P->_sdel || P->_p_p || P->_p_r))
         {
@@ -110,7 +111,7 @@ public:
     void note_off (int n)
     {
         if ((n < _n0) || (n > _n1)) return;
-        Pipewave *P = _pipes + (n - _n0);
+        Pipewave *P = &_pipes [n - _n0];
         P->_sdel >>= 4;
         P->_sbit = 0;     
     }
@@ -141,7 +142,7 @@ private:
     int         _n1;
     uint32_t    _sbit;
     Pipewave   *_list;
-    Pipewave   *_pipes;
+    std::unique_ptr <Pipewave []> _pipes;
     bool        _modif;
 };
 
