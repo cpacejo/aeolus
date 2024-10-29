@@ -18,6 +18,7 @@
 // ----------------------------------------------------------------------------
 
 
+#include <memory>
 #include <stdlib.h>
 #include <stdio.h>
 #include <clthreads.h>
@@ -37,32 +38,24 @@ extern "C" Iface *create_iface (int ac, char *av [])
 Xiface::Xiface (int ac, char *av [])
 {
     _xresm.init (&ac, av, (char *)"aeolus", 0, 0);
-    _disp = new X_display (_xresm.get (".display", 0));
+    _disp = std::make_unique <X_display> (_xresm.get (".display", 0));
     if (_disp->dpy () == 0)
     {
 	fprintf (stderr, "Can't open display !\n");
-        delete _disp;
+        _disp.reset ();
 	exit (1);
     }
-    init_styles (_disp, &_xresm);
-    _root = new X_rootwin (_disp);
-    _xhan = new X_handler (_disp, this, EV_XWIN);
+    init_styles (_disp.get(), &_xresm);
+    _root = std::make_unique <X_rootwin> (_disp.get());
+    _xhan = std::make_unique <X_handler> (_disp.get(), this, EV_XWIN);
     _xhan->next_event ();
     _aupar = 0;
     _dipar = 0;
     _editp = 0;
 }
 
-
-Xiface::~Xiface (void)
+Xiface::~Xiface ()
 {
-    delete _mainwin;
-    delete _audiowin;
-    delete _instrwin;
-    delete _editwin;
-    delete _xhan;
-    delete _root;
-    delete _disp;
 }
 
 
@@ -133,11 +126,11 @@ void Xiface::handle_mesg (ITC_mesg *M)
     case MT_IFC_INIT:
     {
         M_ifc_init *X = (M_ifc_init *) M;
-        _mainwin  = new Mainwin (_root, this, 100, 100, &_xresm);           
-        _midiwin  = new Midiwin (_root, this, 120, 120, &_xresm);           
-        _audiowin = new Audiowin (_root, this, 140, 140, &_xresm);           
-        _instrwin = new Instrwin (_root, this, 160, 160, &_xresm);           
-        _editwin  = new Editwin (_root, this, 180, 180, &_xresm);
+        _mainwin  = std::make_unique <Mainwin> (_root.get(), this, 100, 100, &_xresm);
+        _midiwin  = std::make_unique <Midiwin> (_root.get(), this, 120, 120, &_xresm);
+        _audiowin = std::make_unique <Audiowin> (_root.get(), this, 140, 140, &_xresm);
+        _instrwin = std::make_unique <Instrwin> (_root.get(), this, 160, 160, &_xresm);
+        _editwin  = std::make_unique <Editwin> (_root.get(), this, 180, 180, &_xresm);
         _mainwin->setup (X);
         _midiwin->setup (X);
         _audiowin->setup (X);

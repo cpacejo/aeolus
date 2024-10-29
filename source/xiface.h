@@ -23,6 +23,7 @@
 
 
 #include <clxclient.h>
+#include <memory>
 #include "iface.h"
 #include "mainwin.h"
 #include "editwin.h"
@@ -36,7 +37,7 @@ class Xiface : public Iface,  public X_callback
 public:
 
     Xiface (int ac, char *av []);
-    virtual ~Xiface (void);
+    virtual ~Xiface ();
     virtual void stop (void);
 
 private:
@@ -52,18 +53,18 @@ private:
     void add_text (X_window *win, int xp, int yp, int xs, int ys, const char *text, X_textln_style *style);
 
     X_resman       _xresm;
-    X_display     *_disp;
-    X_rootwin     *_root;
-    X_handler     *_xhan;
+    std::unique_ptr <X_display> _disp;
+    std::unique_ptr <X_rootwin> _root;
+    std::unique_ptr <X_handler> _xhan;
     bool           _stop;
     bool           _ready;
     int            _xs;
     int            _ys;
-    Mainwin       *_mainwin;
-    Editwin       *_editwin;
-    Midiwin       *_midiwin;
-    Audiowin      *_audiowin;
-    Instrwin      *_instrwin;
+    std::unique_ptr <Mainwin> _mainwin;
+    std::unique_ptr <Editwin> _editwin;
+    std::unique_ptr <Midiwin> _midiwin;
+    std::unique_ptr <Audiowin> _audiowin;
+    std::unique_ptr <Instrwin> _instrwin;
 
     M_ifc_aupar   *_aupar;
     M_ifc_dipar   *_dipar;
