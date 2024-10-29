@@ -18,6 +18,7 @@
 // ----------------------------------------------------------------------------
 
 
+#include <algorithm>
 #include "imidi.h"
 
 Imidi::Imidi (Lfq_u32 *qnote, Lfq_u8 *qmidi, uint16_t *midimap, const char *appname) :
@@ -43,7 +44,7 @@ void Imidi::open_midi (void)
     M_midi_info *M = new M_midi_info ();
     M->_client = _client;
     M->_ipport = _ipport;
-    memcpy (M->_chbits, _midimap, 16 * sizeof (uint16_t));
+    std::copy_n (_midimap, 16, M->_chbits);
     send_event (TO_MODEL, M);
 }
 
