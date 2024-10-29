@@ -18,6 +18,7 @@
 // ----------------------------------------------------------------------------
 
 
+#include <algorithm>
 #include "mainwin.h"
 #include "messages.h"
 #include "callbacks.h"
@@ -426,7 +427,7 @@ void Mainwin::set_state (M_ifc_preset *M)
   
     if (M->_stat)
     {
-        memcpy (_st_mod, M->_bits, NGROUP * sizeof (uint32_t));
+        std::copy_n (M->_bits, NGROUP, _st_mod);
         sprintf (s, "%d:%d  Loaded", M->_bank + 1, M->_pres + 1);
         if (!_local) set_butt ();
     }
