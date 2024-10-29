@@ -18,6 +18,7 @@
 // ----------------------------------------------------------------------------
 
 
+#include <memory>
 #include <string.h>
 #include "global.h"
 #include "addsynth.h"
@@ -38,7 +39,7 @@ N_func::N_func (void)
 void N_func::reset (float v)
 {
     _b = 16;
-    for (int i = 0; i < N_NOTE; i++) _v [i] = v;
+    std::fill_n (_v, N_NOTE, v);
 }
 
 
@@ -238,7 +239,7 @@ int Addsynth::save (const char *sdir)
         return 1;
     }
 
-    memset (d, 0, 32);
+    std::fill_n (d, 32, 0);
     strcpy (d, "AEOLUS");
     d [7]  =  2;       // Version
     d [26] = N_HARM;
