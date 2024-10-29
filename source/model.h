@@ -127,10 +127,7 @@ class Midiconf
 {
 public:
 
-    Midiconf (void)
-    {
-        memset (_bits, 0, 16 * sizeof (uint16_t));
-    }
+    Midiconf () : _bits { } { }
 
     uint16_t  _bits [16];
 };
@@ -140,7 +137,7 @@ class Preset
 {
 public:
 
-    Preset (void) { memset (_bits, 0, NGROUP * sizeof (uint32_t)); }
+    Preset () : _bits { } { }
 
     uint32_t  _bits [NGROUP];
 };
@@ -226,7 +223,7 @@ private:
     int             _sc_cmode; // stop control command mode
     int             _sc_group; // stop control group number
     Midiconf        _chconf [8];
-    Preset         *_preset [NBANK][NPRES];
+    std::unique_ptr <Preset> _preset [NBANK][NPRES];
     M_audio_info   *_audio;
     M_midi_info    *_midi;
 };

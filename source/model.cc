@@ -18,6 +18,7 @@
 // ----------------------------------------------------------------------------
 
 
+#include <algorithm>
 #include <memory>
 #include <stdlib.h>
 #include <string.h>
@@ -59,12 +60,10 @@ Keybd::Keybd (void) :
 Ifelm::Ifelm (void) :
     _state (0)
 #if MULTISTOP
+    , _action { }
     , _action0(_action[0][0]), _action1(_action[1][0])
 #endif
 {
-#if MULTISTOP
-    memset(_action, 0, sizeof(_action));
-#endif
     *_label = 0;
     *_mnemo = 0;
 }
@@ -107,8 +106,7 @@ Model::Model (Lfq_u32      *qcomm,
 {
     sprintf (_instrdir, "%s/%s", stopsdir, instrdir);
     sprintf (_wavesdir, "%s/%s", stopsdir, wavesdir);
-    memset (_midimap, 0, 16 * sizeof (uint16_t));
-    memset (_preset, 0, NBANK * NPRES * sizeof (Preset *));
+    std::fill_n (_midimap, 16, 0);
 }
 
 
@@ -233,7 +231,7 @@ void Model::proc_mesg (ITC_mesg *M)
         if (index >= 0)
 	{ 
 	    if (index >= 8) break;
-            memcpy (_chconf [X->_index]._bits, X->_bits, 16 * sizeof (uint16_t));
+            std::copy_n (X->_bits, 16, _chconf [X->_index]._bits);
 	}  
         set_mconf (X->_index, X->_bits);
     }
@@ -761,7 +759,7 @@ void Model::set_dipar (int s, int d, int p, float v)
 void Model::set_mconf (int i, uint16_t *d)
 {
     midi_off (NKEYBD);
-    memcpy (_midimap, d, 16 * sizeof (uint16_t));
+    std::copy_n (d, 16, _midimap);
     send_event (TO_IFACE, new M_ifc_chconf (MT_IFC_MCSET, i, d));         
 }
 
@@ -1323,7 +1321,7 @@ int Model::get_preset (int bank, int pres, uint32_t *bits)
     Preset  *P;
 
     if ((bank < 0) | (pres < 0) || (bank >= NBANK) || (pres >= NPRES)) return 0;
-    P = _preset [bank][pres];
+    P = _preset [bank][pres].get ();
     if (P)
     {
         for (k = 0; k < _ngroup; k++) *bits++ = P->_bits [k];
@@ -1339,11 +1337,11 @@ void Model::set_preset (int bank, int pres, uint32_t *bits)
     Preset  *P;
 
     if ((bank  < 0) | (pres < 0) || (bank >= NBANK) || (pres >= NPRES)) return;
-    P = _preset [bank][pres];
+    P = _preset [bank][pres].get ();
     if (! P)
     {
-	P = new Preset;
-        _preset [bank][pres] = P;
+        _preset [bank][pres] = std::make_unique <Preset> ();
+        P = _preset [bank][pres].get ();
     }
     for (k = 0; k < _ngroup; k++) P->_bits [k] = *bits++;
 }
@@ -1351,29 +1349,22 @@ void Model::set_preset (int bank, int pres, uint32_t *bits)
 
 void Model::ins_preset (int bank, int pres, uint32_t *bits)
 {
-    int     j, k;
-    Preset  *P;
+    int     k;
+    std::unique_ptr <Preset> P;
 
     if ((bank < 0) | (pres < 0) || (bank >= NBANK) || (pres >= NPRES)) return;
-    P = _preset [bank][NPRES - 1];
-    for (j = NPRES - 1; j > pres; j--) _preset [bank][j] = _preset [bank][j - 1];
-    if (! P)
-    {
-	P = new Preset;
-        _preset [bank][pres] = P;
-    }
+    P = std::move (_preset [bank][NPRES - 1]);
+    std::move_backward (&_preset [bank][pres], &_preset [bank][NPRES - 1], &_preset [bank][NPRES]);
+    if (! P) P = std::make_unique <Preset> ();
     for (k = 0; k < _ngroup; k++) P->_bits [k] = *bits++;
+    _preset [bank][pres] = std::move (P);
 }
 
 
 void Model::del_preset (int bank, int pres)
 {
-    int j;
-
     if ((bank < 0) | (pres < 0) || (bank >= NBANK) || (pres >= NPRES)) return;
-    delete _preset [bank][pres];
-    for (j = pres; j < NPRES - 1; j++) _preset [bank][j] = _preset [bank][j + 1];
-    _preset [bank][NPRES - 1] = 0;
+    std::move (&_preset [bank][pres + 1], &_preset [bank][NPRES], &_preset [bank][pres]);
 }
 
 
@@ -1383,7 +1374,7 @@ int Model::read_presets (void)
     char           name [1200];
     unsigned char  *p, data [256];
     FILE           *F;
-    Preset         *P;
+    std::unique_ptr <Preset> P;
 
     if (_uhome)
     {
@@ -1441,13 +1432,13 @@ int Model::read_presets (void)
         p++;
         if ((i < NBANK) && (j < NPRES))
 	{ 
-            P = new Preset;
+            P = std::make_unique <Preset> ();
             for (k = 0; k < _ngroup; k++)
 	    {
                 P->_bits [k] = RD4 (p);
                 p += 4;
 	    }
-            _preset [i][j] = P;
+            _preset [i][j] = std::move (P);
 	}
     }
 
@@ -1505,7 +1496,7 @@ int Model::write_presets (void)
     {
         for (j = 0; j < NPRES; j++)
 	{
-            P = _preset [i][j];
+            P = _preset [i][j].get ();
             if (P)
 	    {
 		p = data;
