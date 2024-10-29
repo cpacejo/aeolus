@@ -18,6 +18,7 @@
 // ----------------------------------------------------------------------------
 
 
+#include <algorithm>
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -74,7 +75,7 @@ void Midimatrix::init (M_ifc_init *M)
 void Midimatrix::set_chconf (uint16_t *d)
 {
     plot_allconn ();
-    memcpy (_chconf, d, 16 *  sizeof (uint16_t));
+    std::copy_n (d, 16, _chconf);
     plot_allconn ();
 }
 
