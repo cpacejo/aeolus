@@ -21,6 +21,7 @@
 #ifndef __MESSAGES_H
 #define __MESSAGES_H
 
+#include <algorithm>
 #include <clthreads.h>
 #include <string.h>
 #include "rankwave.h"
@@ -283,8 +284,8 @@ public:
         ITC_mesg (type),
         _index (index)
     {
-	if (bits) memcpy (_bits, bits, 16 * sizeof (uint16_t));
-        else      memset (_bits, 0, 16 * sizeof (uint16_t)); 
+	if (bits) std::copy_n (bits, 16, _bits);
+        else      std::fill_n (_bits, 16, 0);
     }
 
     int       _index;    
@@ -302,8 +303,8 @@ public:
         _pres (pres),
         _stat (stat)
     {
-	if (bits) memcpy (_bits, bits, NGROUP * sizeof (uint32_t));
-        else      memset (_bits, 0, NGROUP * sizeof (uint32_t));
+	if (bits) std::copy_n (bits, NGROUP, _bits);
+        else      std::fill_n (_bits, NGROUP, 0);
     }
 
     int       _bank;
