@@ -23,6 +23,7 @@
 
 
 #include <clxclient.h>
+#include <memory>
 
 
 class Functionwin : public X_window
@@ -31,7 +32,6 @@ public:
 
     Functionwin (X_window *parent, X_callback *callb, int xp, int yp, 
                  unsigned long bgnd, unsigned long grid, unsigned long mark);
-    ~Functionwin (void);
  
     void set_xparam (int n, int x0, int dx);
     void set_yparam (int k, X_scale_style *scale, unsigned long color);
@@ -81,8 +81,8 @@ private:
     int             _n;
     unsigned long   _co [NFUNC];
     X_scale_style  *_sc [NFUNC];
-    int            *_yc [NFUNC];
-    char           *_st [NFUNC];
+    std::unique_ptr <int []> _yc [NFUNC];
+    std::unique_ptr <char []> _st [NFUNC];
     int             _fc;
     int             _ic;
     int             _im;

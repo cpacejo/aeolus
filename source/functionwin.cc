@@ -18,6 +18,7 @@
 // ----------------------------------------------------------------------------
 
 
+#include <memory>
 #include <stdlib.h>
 #include <stdio.h>
 #include "functionwin.h"
@@ -34,24 +35,10 @@ Functionwin::Functionwin (X_window *parent, X_callback *callb, int xp, int yp,
     x_add_events (ExposureMask | ButtonMotionMask | ButtonPressMask | ButtonReleaseMask);
     x_set_bit_gravity (NorthWestGravity);
     for (int i = 0; i < NFUNC; i++)
-    {
         _sc [i] = 0;
-	_yc [i] = 0;
-	_st [i] = 0;
-    }
     _fc = 0;
     _ic = -1;
     _im = -1;
-}
-
-
-Functionwin::~Functionwin (void)
-{
-    for (int i = 0; i < NFUNC; i++)
-    {
-	delete[] _yc [i];
-	delete[] _st [i];
-    }
 }
 
 
@@ -100,10 +87,8 @@ void Functionwin::set_yparam (int k, X_scale_style *scale, unsigned long color)
     }
     _sc [k] = scale;
     _co [k] = color;
-    delete[] _yc [k];
-    delete[] _st [k];
-    _yc [k] = new int [_n];
-    _st [k] = new char [_n];
+    _yc [k] = std::make_unique <int []> (_n);
+    _st [k] = std::make_unique <char []> (_n);
     reset (k);
 }
 
@@ -196,8 +181,8 @@ void Functionwin::bpress (XButtonEvent *E)
     if ((i < 0) || (i >= _n)) return;
     if (abs (x - i * _dx) > 8) return;   
 
-    yc = _yc [_fc];
-    st = _st [_fc];
+    yc = _yc [_fc].get ();
+    st = _st [_fc].get ();
 
     if (E->state & ControlMask)
     {
@@ -318,8 +303,8 @@ void Functionwin::plot_line (int k)
     char  *st;
     X_draw D (dpy (), win (), dgc (), 0);
 
-    yc = _yc [k];
-    st = _st [k];
+    yc = _yc [k].get ();
+    st = _st [k].get ();
     D.setcolor (_co [k] ^ _bgnd);
     D.setfunc (GXxor);
 
@@ -365,8 +350,8 @@ void Functionwin::move_point (int y)
 void Functionwin::move_curve (int y)
 {
     int i, j, dy;
-    int  *yc = _yc [_fc];
-    char *st = _st [_fc];
+    int  *yc = _yc [_fc].get ();
+    char *st = _st [_fc].get ();
 
     plot_line (_fc); 
     if (y > _ymax) y = _ymax;
