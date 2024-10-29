@@ -18,11 +18,13 @@
 // ----------------------------------------------------------------------------
 
 
+#include <memory>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 #include <ctype.h>
 #include <time.h>
+#include <utility>
 #include "model.h"
 #include "scales.h"
 #include "global.h"
@@ -309,7 +311,7 @@ void Model::proc_mesg (ITC_mesg *M)
         Rank       *R = find_rank (X->_group, X->_ifelm); 
         if (_ready && R)
 	{
-            X->_synth = R->_synth;
+            X->_synth = R->_synth.get ();
             send_event (TO_IFACE, M);
             M = 0;
 	}
@@ -588,7 +590,7 @@ void Model::proc_rank (int g, int i, int comm)
    	        M->_fsamp = _audio->_fsamp;
 	        M->_fbase = _fbase;
 	        M->_scale = scales [_itemp]._data;
-	        M->_synth = R->_synth;
+	        M->_synth = R->_synth.get ();
 	        M->_rwave = R->_rwave;
 	        M->_path  = _wavesdir;
 	        send_event (TO_SLAVE, M);
@@ -605,7 +607,7 @@ void Model::proc_rank (int g, int i, int comm)
 	    M->_fsamp = _audio->_fsamp;
 	    M->_fbase = _fbase;
 	    M->_scale = scales [_itemp]._data;
-	    M->_synth = R->_synth;
+	    M->_synth = R->_synth.get ();
 	    M->_rwave = R->_rwave;
 	    M->_path  = _wavesdir;
 	    send_event (TO_SLAVE, M);
@@ -847,7 +849,7 @@ int Model::read_instr (void)
     Rank          *R;
     Group         *G;
     Ifelm         *I;
-    Addsynth      *A;
+    std::unique_ptr <Addsynth> A;
 
     enum { CONT, DONE, ERROR, COMM, ARGS, MORE, NO_INSTR, IN_INSTR,
            BAD_SCOPE, BAD_ASECT, BAD_RANK, BAD_DIVIS, BAD_KEYBD, BAD_IFACE,
@@ -1001,12 +1003,12 @@ int Model::read_instr (void)
                 else if (strlen (t1) > 63) stat = BAD_STR1;
                 else
 		{
-                    A = new Addsynth;
+                    A = std::make_unique <Addsynth> ();
         	    strcpy (A->_filename, t1);
                     if (A->load (_stopsdir))
 		    {
 			stat = ERROR;
-			delete A;
+			A.reset ();
  		    }
                     else
 		    {   
@@ -1014,7 +1016,7 @@ int Model::read_instr (void)
                         A->_del = d; 
 			R = D->_ranks + D->_nrank++; 
                         R->_count = 0;
-                        R->_synth = A;
+                        R->_synth = std::move (A);
                         R->_rwave = 0;
 		    }
  		}
@@ -1252,7 +1254,7 @@ int Model::write_instr (void)
         for (r = 0; r < D->_nrank; r++)
 	{
             R = D->_ranks + r;
-	    A = R->_synth;
+	    A = R->_synth.get ();
             fprintf (F, "/rank         %c %3d  %s\n", A->_pan, A->_del, A->_filename);        
 	} 
         if (D->_flags & Divis::HAS_SWELL) fprintf (F, "/swell\n");

@@ -23,6 +23,7 @@
 
 
 #include <clthreads.h>
+#include <memory>
 #include "messages.h"
 #include "lfqueue.h"
 #include "addsynth.h"
@@ -48,7 +49,7 @@ class Rank
 public:
 
     int         _count;
-    Addsynth   *_synth;
+    std::unique_ptr <Addsynth> _synth;
     Rankwave   *_rwave;
 };
 
