@@ -24,7 +24,7 @@
 
 
 Audiowin::Audiowin (X_window *parent, X_callback *callb, int xp, int yp, X_resman *xresm) :
-    X_window (parent, xp, yp, 200, 100, Colors.main_bg),
+    X_window (parent, xp, yp, UISCALE(200), UISCALE(100), Colors.main_bg),
     _callb (callb),
     _xresm (xresm),
     _xp (xp),
@@ -87,24 +87,24 @@ void Audiowin::setup (M_ifc_init *M)
     Asect    *S; 
     X_hints  H;
     
-    but1.size.x = 20;
-    but1.size.y = 20;
+    but1.size.x = UISCALE(20);
+    but1.size.y = UISCALE(20);
     _nasect = M->_nasect;
     for (i = 0; i < _nasect; i++)
     {
 	S = _asectd + i;
-        x = XOFFS + XSTEP * i;
+        x = UISCALE(XOFFS + XSTEP * i);
         k = ASECT_STEP * (i + 1);
 
-        (S->_slid [0] = new  X_hslider (this, this, &sli1, &sca_azim, x,  40, 20, k + 0))->x_map ();
-        (S->_slid [1] = new  X_hslider (this, this, &sli1, &sca_difg, x,  75, 20, k + 1))->x_map ();
-        (S->_slid [2] = new  X_hslider (this, this, &sli1, &sca_dBsh, x, 110, 20, k + 2))->x_map ();
-        (S->_slid [3] = new  X_hslider (this, this, &sli1, &sca_dBsh, x, 145, 20, k + 3))->x_map ();
-        (S->_slid [4] = new  X_hslider (this, this, &sli1, &sca_dBsh, x, 180, 20, k + 4))->x_map ();
-        (new X_hscale (this, &sca_azim, x,  30, 10))->x_map ();
-        (new X_hscale (this, &sca_difg, x,  65, 10))->x_map ();
-        (new X_hscale (this, &sca_dBsh, x, 133, 10))->x_map ();
-        (new X_hscale (this, &sca_dBsh, x, 168, 10))->x_map ();
+        (S->_slid [0] = new  X_hslider (this, this, &sli1, &sca_azim, x, UISCALE( 40), UISCALE(20), k + 0))->x_map ();
+        (S->_slid [1] = new  X_hslider (this, this, &sli1, &sca_difg, x, UISCALE( 75), UISCALE(20), k + 1))->x_map ();
+        (S->_slid [2] = new  X_hslider (this, this, &sli1, &sca_dBsh, x, UISCALE(110), UISCALE(20), k + 2))->x_map ();
+        (S->_slid [3] = new  X_hslider (this, this, &sli1, &sca_dBsh, x, UISCALE(145), UISCALE(20), k + 3))->x_map ();
+        (S->_slid [4] = new  X_hslider (this, this, &sli1, &sca_dBsh, x, UISCALE(180), UISCALE(20), k + 4))->x_map ();
+        (new X_hscale (this, &sca_azim, x, UISCALE( 30), UISCALE(10)))->x_map ();
+        (new X_hscale (this, &sca_difg, x, UISCALE( 65), UISCALE(10)))->x_map ();
+        (new X_hscale (this, &sca_dBsh, x, UISCALE(133), UISCALE(10)))->x_map ();
+        (new X_hscale (this, &sca_dBsh, x, UISCALE(168), UISCALE(10)))->x_map ();
         S->_label [0] = 0;
         for (j = 0; j <  M->_ndivis; j++)
 	{
@@ -112,40 +112,40 @@ void Audiowin::setup (M_ifc_init *M)
 	    {
 		if (S->_label [0]) strcat (S->_label, " + ");
                 strcat (S->_label, M->_divisd [j]._label);
-                add_text (x, 5, 200, 20, S->_label, &text0);
+                add_text (x, UISCALE(5), UISCALE(200), UISCALE(20), S->_label, &text0);
 	    } 
 	}
     }
-    add_text ( 10,  40, 60, 20, "Azimuth", &text0);
-    add_text ( 10,  75, 60, 20, "Width",   &text0);
-    add_text ( 10, 110, 60, 20, "Direct ", &text0);
-    add_text ( 10, 145, 60, 20, "Reflect", &text0);
-    add_text ( 10, 180, 60, 20, "Reverb",  &text0);
+    add_text (UISCALE( 10), UISCALE( 40), UISCALE(60), UISCALE(20), "Azimuth", &text0);
+    add_text (UISCALE( 10), UISCALE( 75), UISCALE(60), UISCALE(20), "Width",   &text0);
+    add_text (UISCALE( 10), UISCALE(110), UISCALE(60), UISCALE(20), "Direct ", &text0);
+    add_text (UISCALE( 10), UISCALE(145), UISCALE(60), UISCALE(20), "Reflect", &text0);
+    add_text (UISCALE( 10), UISCALE(180), UISCALE(60), UISCALE(20), "Reverb",  &text0);
 
-    (_slid [0] = new  X_hslider (this, this, &sli1, &sca_dBsh, 520, 275, 20, 0))->x_map ();
-    (_slid [1] = new  X_hslider (this, this, &sli1, &sca_size,  70, 240, 20, 1))->x_map ();
-    (_slid [2] = new  X_hslider (this, this, &sli1, &sca_trev,  70, 275, 20, 2))->x_map ();
-    (_slid [3] = new  X_hslider (this, this, &sli1, &sca_spos, 305, 275, 20, 3))->x_map ();
-    (new X_hscale (this, &sca_size,  70, 230, 10))->x_map ();
-    (new X_hscale (this, &sca_trev,  70, 265, 10))->x_map ();
-    (new X_hscale (this, &sca_spos, 305, 265, 10))->x_map ();
-    (new X_hscale (this, &sca_dBsh, 520, 265, 10))->x_map ();
-    add_text ( 10, 240, 50, 20, "Delay",    &text0);
-    add_text ( 10, 275, 50, 20, "Time",     &text0);
-    add_text (135, 305, 60, 20, "Reverb",   &text0);
-    add_text (355, 305, 80, 20, "Position", &text0);
-    add_text (570, 305, 60, 20, "Volume",   &text0);
+    (_slid [0] = new  X_hslider (this, this, &sli1, &sca_dBsh, UISCALE(520), UISCALE(275), UISCALE(20), 0))->x_map ();
+    (_slid [1] = new  X_hslider (this, this, &sli1, &sca_size, UISCALE( 70), UISCALE(240), UISCALE(20), 1))->x_map ();
+    (_slid [2] = new  X_hslider (this, this, &sli1, &sca_trev, UISCALE( 70), UISCALE(275), UISCALE(20), 2))->x_map ();
+    (_slid [3] = new  X_hslider (this, this, &sli1, &sca_spos, UISCALE(305), UISCALE(275), UISCALE(20), 3))->x_map ();
+    (new X_hscale (this, &sca_size, UISCALE( 70), UISCALE(230), UISCALE(10)))->x_map ();
+    (new X_hscale (this, &sca_trev, UISCALE( 70), UISCALE(265), UISCALE(10)))->x_map ();
+    (new X_hscale (this, &sca_spos, UISCALE(305), UISCALE(265), UISCALE(10)))->x_map ();
+    (new X_hscale (this, &sca_dBsh, UISCALE(520), UISCALE(265), UISCALE(10)))->x_map ();
+    add_text (UISCALE( 10), UISCALE(240), UISCALE(50), UISCALE(20), "Delay",    &text0);
+    add_text (UISCALE( 10), UISCALE(275), UISCALE(50), UISCALE(20), "Time",     &text0);
+    add_text (UISCALE(135), UISCALE(305), UISCALE(60), UISCALE(20), "Reverb",   &text0);
+    add_text (UISCALE(355), UISCALE(305), UISCALE(80), UISCALE(20), "Position", &text0);
+    add_text (UISCALE(570), UISCALE(305), UISCALE(60), UISCALE(20), "Volume",   &text0);
 
     sprintf (s, "%s   Aeolus-%s   Audio settings", M->_appid, VERSION);
     x_set_title (s);
 
     H.position (_xp, _yp);
-    H.minsize (200, 100);
-    H.maxsize (XOFFS + _nasect * XSTEP, YSIZE);
+    H.minsize (UISCALE(200), UISCALE(100));
+    H.maxsize (UISCALE(XOFFS + _nasect * XSTEP), UISCALE(YSIZE));
     H.rname (_xresm->rname ());
     H.rclas (_xresm->rclas ());
     x_apply (&H); 
-    x_resize (XOFFS + _nasect * XSTEP, YSIZE);
+    x_resize (UISCALE(XOFFS + _nasect * XSTEP), UISCALE(YSIZE));
 }
 
 

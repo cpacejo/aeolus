@@ -26,7 +26,7 @@
 
 
 Splashwin::Splashwin (X_window *parent, int xp, int yp) :
-    X_window (parent, xp, yp, XSIZE, YSIZE, Colors.spla_bg, Colors.black, 2)
+    X_window (parent, xp, yp, UISCALE(XSIZE), UISCALE(YSIZE), Colors.spla_bg, Colors.black, 2)
 {
     x_add_events (ExposureMask); 
 }
@@ -55,28 +55,28 @@ void Splashwin::expose (XExposeEvent *E)
     X_draw  D (dpy (), win (), dgc (), xft ());
 
     if (E->count) return;
-    x = XSIZE / 2;
-    y = YSIZE / 2;
+    x = UISCALE(XSIZE / 2);
+    y = UISCALE(YSIZE / 2);
 
     sprintf (s, "Aeolus-%s", VERSION);
     D.setfunc (GXcopy);
     D.setfont (XftFonts.spla1);
     D.setcolor (XftColors.spla_fg);
-    D.move (x, y - 50);
+    D.move (x, y - UISCALE(50));
     D.drawstring (s, 0); 
     D.setfont (XftFonts.spla2);
     D.move (x, y);
     D.drawstring ("(C) 2003-2022 Fons Adriaensen", 0); 
-    D.move (x, y + 50);
+    D.move (x, y + UISCALE(50));
     D.drawstring ("This is free software, and you are welcome to distribute it", 0); 
-    D.move (x, y + 70);
+    D.move (x, y + UISCALE(70));
     D.drawstring ("under certain conditions. See the file COPYING for details.", 0); 
 }
 
 
 
 Mainwin::Mainwin (X_window *parent, X_callback *callb, int xp, int yp, X_resman *xresm) :
-    X_window (parent, xp, yp, 100, 100, Colors.main_bg),
+    X_window (parent, xp, yp, UISCALE(100), UISCALE(100), Colors.main_bg),
     _callb (callb),
     _xresm (xresm),
     _count (0),
@@ -132,15 +132,15 @@ void Mainwin::expose (XExposeEvent *E)
     for (g = 0; g < _ngroup; g++)
     {
         G = _groups + g; 
-        D.move (10, G->_ylabel );
+        D.move (UISCALE(10), G->_ylabel );
         D.setcolor (XftColors.main_fg);
         D.drawstring (G->_label, -1);
         D.setcolor (Colors.main_ls);
-        D.move (15, G->_ydivid);
-        D.rdraw (_xsize - 30, 0);     
+        D.move (UISCALE(15), G->_ydivid);
+        D.rdraw (_xsize - UISCALE(30), UISCALE(0));
         D.setcolor (Colors.main_ds);
-        D.rmove (0, -1);
-        D.rdraw (30 - _xsize, 0);     
+        D.rmove (UISCALE(0), UISCALE(-1));
+        D.rdraw (UISCALE(30) - _xsize, UISCALE(0));
     }
 }
 
@@ -303,14 +303,14 @@ void Mainwin::setup (M_ifc_init *M)
     char            s [256];
 
     _ngroup = M->_ngroup;
-    y = 15;
+    y = UISCALE(15);
     for (g = 0; g < _ngroup; g++)
     {
 	G = _groups + g;
-        G->_ylabel = y + 20;
+        G->_ylabel = y + UISCALE(20);
         G->_label  = M->_groupd [g]._label;
         G->_nifelm = M->_groupd [g]._nifelm;
-        x = 95;
+        x = UISCALE(95);
         S = &ife0;
         for (i = 0; i < G->_nifelm; i++)
 	{        
@@ -321,52 +321,52 @@ void Mainwin::setup (M_ifc_init *M)
 	    case 2: S = &ife2; break;
 	    case 3: S = &ife3; break;
 	    }
-            if (i == 10) { x = 35; y += S->size.y + 4; }                
-            if (i == 20) { x = 65; y += S->size.y + 4; }                
+            if (i == 10) { x = UISCALE(35); y += S->size.y + UISCALE(4); }
+            if (i == 20) { x = UISCALE(65); y += S->size.y + UISCALE(4); }
             G->_butt [i] = new X_tbutton (this, this, S, x, y, 0, 0, (g + 1) * GROUP_STEP + i);
             set_label (g, i, M->_groupd [g]._ifelmd [i]._label);
             G->_butt [i]->x_map ();              
-            x += S->size.x + 4;             
+            x += S->size.x + UISCALE(4);
 	}
-        y += S->size.y + 15;
+        y += S->size.y + UISCALE(15);
         G->_ydivid = y;
-        y += 15;    
+        y += UISCALE(15);
     }
 
-    x = _xsize = 990;
+    x = _xsize = UISCALE(990);
 
-    but2.size.x = 17;
-    but2.size.y = 17;
-    add_text (15, y + 2,  60, 20, "Preset",   &text0);
-    add_text (15, y + 24, 60, 20, "Bank",     &text0);
-    (_t_pres = new X_textip  (this,    0, &text0, 80, y + 2,  40, 20,  7))->x_map ();
-    (_t_bank = new X_textip  (this,    0, &text0, 80, y + 24, 40, 20,  7))->x_map ();
-    (_b_decm = new X_ibutton (this, this, &but2, 125, y + 2,  disp ()->image1515 (X_display::IMG_LT), B_DECM))->x_map ();
-    (_b_incm = new X_ibutton (this, this, &but2, 143, y + 2,  disp ()->image1515 (X_display::IMG_RT), B_INCM))->x_map ();
-    (_b_decb = new X_ibutton (this, this, &but2, 125, y + 24, disp ()->image1515 (X_display::IMG_LT), B_DECB))->x_map ();
-    (_b_incb = new X_ibutton (this, this, &but2, 143, y + 24, disp ()->image1515 (X_display::IMG_RT), B_INCB))->x_map ();
+    but2.size.x = UISCALE(17);
+    but2.size.y = UISCALE(17);
+    add_text (UISCALE(15), y + UISCALE(2),  UISCALE(60), UISCALE(20), "Preset",   &text0);
+    add_text (UISCALE(15), y + UISCALE(24), UISCALE(60), UISCALE(20), "Bank",     &text0);
+    (_t_pres = new X_textip  (this,    0, &text0, UISCALE( 80), y + UISCALE(2),  UISCALE(40), UISCALE(20),  7))->x_map ();
+    (_t_bank = new X_textip  (this,    0, &text0, UISCALE( 80), y + UISCALE(24), UISCALE(40), UISCALE(20),  7))->x_map ();
+    (_b_decm = new X_ibutton (this, this, &but2,  UISCALE(125), y + UISCALE(2),  disp ()->image1515 (X_display::IMG_LT), B_DECM))->x_map ();
+    (_b_incm = new X_ibutton (this, this, &but2,  UISCALE(143), y + UISCALE(2),  disp ()->image1515 (X_display::IMG_RT), B_INCM))->x_map ();
+    (_b_decb = new X_ibutton (this, this, &but2,  UISCALE(125), y + UISCALE(24), disp ()->image1515 (X_display::IMG_LT), B_DECB))->x_map ();
+    (_b_incb = new X_ibutton (this, this, &but2,  UISCALE(143), y + UISCALE(24), disp ()->image1515 (X_display::IMG_RT), B_INCB))->x_map ();
 
-    but1.size.x = 80;
-    but1.size.y = 20;
-    (_b_mrcl = new X_tbutton (this, this, &but1, 244, y,      "Recall", 0, B_MRCL))->x_map ();
-    (_b_prev = new X_tbutton (this, this, &but1, 328, y,      "Prev",   0, B_PREV))->x_map ();
-    (_b_next = new X_tbutton (this, this, &but1, 412, y,      "Next",   0, B_NEXT))->x_map ();
-    (_b_msto = new X_tbutton (this, this, &but1, 244, y + 25, "Store",  0, B_MSTO))->x_map ();
-    (_b_mins = new X_tbutton (this, this, &but1, 328, y + 25, "Insert", 0, B_MINS))->x_map ();
-    (_b_mdel = new X_tbutton (this, this, &but1, 412, y + 25, "Delete", 0, B_MDEL))->x_map ();
-    (_b_canc = new X_tbutton (this, this, &but1, 532, y + 25, "Cancel", 0, B_CANC))->x_map ();
-    (_b_save = new X_tbutton (this, this, &but1, x - 180, y,      "Save",     0, CB_GLOB_SAVE))->x_map ();
-    (_b_moff = new X_tbutton (this, this, &but1, x -  96, y,      "Midi off", 0, CB_GLOB_MOFF))->x_map ();
-    (_b_insw = new X_tbutton (this, this, &but1, x - 264, y + 25, "Instrum",  0, CB_SHOW_INSW))->x_map ();
-    (_b_audw = new X_tbutton (this, this, &but1, x - 180, y + 25, "Audio",    0, CB_SHOW_AUDW))->x_map ();
-    (_b_midw = new X_tbutton (this, this, &but1, x -  96, y + 25, "Midi",     0, CB_SHOW_MIDW))->x_map ();
-    (_t_comm = new X_textip  (this,    0, &text0, 500, y, 160, 20, 15))->x_map ();
+    but1.size.x = UISCALE(80);
+    but1.size.y = UISCALE(20);
+    (_b_mrcl = new X_tbutton (this, this, &but1, UISCALE(244), y,      "Recall", 0, B_MRCL))->x_map ();
+    (_b_prev = new X_tbutton (this, this, &but1, UISCALE(328), y,      "Prev",   0, B_PREV))->x_map ();
+    (_b_next = new X_tbutton (this, this, &but1, UISCALE(412), y,      "Next",   0, B_NEXT))->x_map ();
+    (_b_msto = new X_tbutton (this, this, &but1, UISCALE(244), y + UISCALE(25), "Store",  0, B_MSTO))->x_map ();
+    (_b_mins = new X_tbutton (this, this, &but1, UISCALE(328), y + UISCALE(25), "Insert", 0, B_MINS))->x_map ();
+    (_b_mdel = new X_tbutton (this, this, &but1, UISCALE(412), y + UISCALE(25), "Delete", 0, B_MDEL))->x_map ();
+    (_b_canc = new X_tbutton (this, this, &but1, UISCALE(532), y + UISCALE(25), "Cancel", 0, B_CANC))->x_map ();
+    (_b_save = new X_tbutton (this, this, &but1, x - UISCALE(180), y,      "Save",     0, CB_GLOB_SAVE))->x_map ();
+    (_b_moff = new X_tbutton (this, this, &but1, x - UISCALE( 96), y,      "Midi off", 0, CB_GLOB_MOFF))->x_map ();
+    (_b_insw = new X_tbutton (this, this, &but1, x - UISCALE(264), y + UISCALE(25), "Instrum",  0, CB_SHOW_INSW))->x_map ();
+    (_b_audw = new X_tbutton (this, this, &but1, x - UISCALE(180), y + UISCALE(25), "Audio",    0, CB_SHOW_AUDW))->x_map ();
+    (_b_midw = new X_tbutton (this, this, &but1, x - UISCALE( 96), y + UISCALE(25), "Midi",     0, CB_SHOW_MIDW))->x_map ();
+    (_t_comm = new X_textip  (this,    0, &text0, UISCALE(500), y, UISCALE(160), UISCALE(20), UISCALE(15)))->x_map ();
 
-   _ysize = y + 55;
-    if (_ysize < Splashwin::YSIZE + 20) _ysize = Splashwin::YSIZE + 20;
+   _ysize = y + UISCALE(55);
+    if (_ysize < UISCALE(Splashwin::YSIZE + 20)) _ysize = UISCALE(Splashwin::YSIZE + 20);
 
-    H.position (100, 100);
-    H.minsize (200, 100);
+    H.position (UISCALE(100), UISCALE(100));
+    H.minsize (UISCALE(200), UISCALE(100));
     H.maxsize (_xsize, _ysize);
     H.rname (_xresm->rname ());
     H.rclas (_xresm->rclas ());
@@ -376,7 +376,7 @@ void Mainwin::setup (M_ifc_init *M)
     sprintf (s, "%s   Aeolus-%s  [%d:%d]", M->_appid, VERSION, M->_client, M->_ipport);
     x_set_title (s);
     x_resize (_xsize, _ysize);
-    _splash = new Splashwin (this, (_xsize - Splashwin::XSIZE) / 2, (_ysize - Splashwin::YSIZE) / 2); 
+    _splash = new Splashwin (this, (_xsize - UISCALE(Splashwin::XSIZE)) / 2, (_ysize - UISCALE(Splashwin::YSIZE)) / 2);
 
     _b_loc = _b_mod = 0;
     _p_loc = _p_mod = 0;

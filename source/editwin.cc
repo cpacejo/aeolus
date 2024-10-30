@@ -30,7 +30,7 @@
 
 
 H_scale::H_scale (X_window *parent, X_callback *callb, int xp, int yp) :
-    X_window (parent, xp, yp, 778, 18, Colors.main_bg),
+    X_window (parent, xp, yp, UISCALE(778), UISCALE(18), Colors.main_bg),
     _callb (callb)
 {
     x_add_events (ExposureMask | ButtonPressMask); 
@@ -53,10 +53,10 @@ void H_scale::handle_event (XEvent *E)
 
     case ButtonPress:
         B = (XButtonEvent *) E;
-        x = B->x - 5; 
-        _i = x / 12;       
-        x -= 12 * _i + 6; 
-        if (_callb && (abs (x) < 6)) _callb->handle_callb (CB_SC_HARM, this, E);
+        x = B->x - UISCALE(5);
+        _i = x / UISCALE(12);
+        x -= UISCALE(12 * _i + 6);
+        if (_callb && (abs (x) < UISCALE(6))) _callb->handle_callb (CB_SC_HARM, this, E);
         break;  
     }
 }
@@ -72,7 +72,7 @@ void H_scale::redraw (void)
     D.setfont (XftFonts.scales);
     for (i = 0; i < 64; i++)
     {
-	D.move (11 + i * 12, 12);
+	D.move (UISCALE(12 + i * 12) - 1, UISCALE(12));
 	sprintf (s, "%d", i + 1);
 	D.drawstring (s, 0);
 	if (i > 8) i++;
@@ -82,7 +82,7 @@ void H_scale::redraw (void)
 
 
 N_scale::N_scale (X_window *parent, X_callback *callb, int xp, int yp) :
-    X_window (parent, xp, yp, 778, 18, Colors.main_bg), _callb (callb)
+    X_window (parent, xp, yp, UISCALE(778), UISCALE(18), Colors.main_bg), _callb (callb)
 {
     x_add_events (ExposureMask | ButtonPressMask); 
     x_map ();
@@ -104,10 +104,10 @@ void N_scale::handle_event (XEvent *E)
 
     case ButtonPress:
         B = (XButtonEvent *) E;
-        x = B->x + 8; 
-        _i = x / FW_DX;       
-        x -= _i * FW_DX + FW_DX / 2; 
-        if (_callb && (abs (x) < 10)) _callb->handle_callb (CB_SC_NOTE, this, E);
+        x = B->x + UISCALE(8);
+        _i = x / UISCALE(FW_DX);
+        x -= UISCALE(_i * FW_DX + FW_DX / 2);
+        if (_callb && (abs (x) < UISCALE(10))) _callb->handle_callb (CB_SC_NOTE, this, E);
         break;  
     }
 }
@@ -124,7 +124,7 @@ void N_scale::redraw (void)
     for (i = 0; i <= 10 ; i++)
     {
 	sprintf (s, "%d", 36 + 6 * i);
-	D.move (FW_X0 + i * FW_DX, 12);
+	D.move (UISCALE(FW_X0 + i * FW_DX), UISCALE(12));
 	D.drawstring (s, 0);
     }
 }
@@ -143,7 +143,7 @@ const char Editwin::_fd [N_PFTB] = { 4,2,4,1,2,1,1,1,1,1,1 };
 
 
 Editwin::Editwin (X_window *parent, X_callback *callb, int xp, int yp, X_resman *xresm) :
-    X_window (parent, xp, yp, 100, 100, Colors.main_bg),
+    X_window (parent, xp, yp, UISCALE(100), UISCALE(100), Colors.main_bg),
     _callb (callb),
     _xresm (xresm)
 {
@@ -155,50 +155,50 @@ Editwin::Editwin (X_window *parent, X_callback *callb, int xp, int yp, X_resman 
     XSetWMProtocols (dpy (), win (), &_atom, 1);
     _atom = XInternAtom (dpy (), "WM_PROTOCOLS", True);
 
-    _xs = 841;
-    _ys = 700;
+    _xs = UISCALE(841);
+    _ys = UISCALE(700);
     H.position (xp, yp);
     x_apply (&H); 
 
     _lock = 0;
-    but1.size.x = 150;
-    but1.size.y = 20;
-    _tabb [0] = new X_tbutton (this, this, &but1, 0,   0, "General / Vol / Tune", 0, TAB_GEN);
-    _tabb [1] = new X_tbutton (this, this, &but1, 150, 0, "Harmonics - Levels",   0, TAB_LEV);
-    _tabb [2] = new X_tbutton (this, this, &but1, 300, 0, "Harmonics - Attack",   0, TAB_ATT);
-    _tabb [3] = new X_tbutton (this, this, &but1, 450, 0, "Harmonics - Random",   0, TAB_RAN);
+    but1.size.x = UISCALE(150);
+    but1.size.y = UISCALE(20);
+    _tabb [0] = new X_tbutton (this, this, &but1, UISCALE(0),   UISCALE(0), "General / Vol / Tune", 0, TAB_GEN);
+    _tabb [1] = new X_tbutton (this, this, &but1, UISCALE(150), UISCALE(0), "Harmonics - Levels",   0, TAB_LEV);
+    _tabb [2] = new X_tbutton (this, this, &but1, UISCALE(300), UISCALE(0), "Harmonics - Attack",   0, TAB_ATT);
+    _tabb [3] = new X_tbutton (this, this, &but1, UISCALE(450), UISCALE(0), "Harmonics - Random",   0, TAB_RAN);
     for (i = 0; i < 4; i++) _tabb [i]->x_map ();     
-    but1.size.x = 80;
-    _appl = new X_tbutton (this, this, &but1, 600, 0, "Apply", 0, B_APPL);
+    but1.size.x = UISCALE(80);
+    _appl = new X_tbutton (this, this, &but1, UISCALE(600), UISCALE(0), "Apply", 0, B_APPL);
     _appl->x_map ();
-    _moff = new X_tbutton (this, this, &but1, 680, 0, "Midi Off", 0, B_MOFF);
+    _moff = new X_tbutton (this, this, &but1, UISCALE(680), UISCALE(0), "Midi Off", 0, B_MOFF);
     _moff->x_map ();
 
 
-    _tabw [0] = W = new X_window (this, 0, 20, _xs, _ys, Colors.main_bg);
-    y = 20;
-    add_text (W, 30, y, 90, 20, "File", &text0);
-    _file = new X_textip (W, this, &texti, 120, y, 300, 20, 63);
+    _tabw [0] = W = new X_window (this, UISCALE(0), UISCALE(20), _xs, _ys, Colors.main_bg);
+    y = UISCALE(20);
+    add_text (W, UISCALE(30), y, UISCALE(90), UISCALE(20), "File", &text0);
+    _file = new X_textip (W, this, &texti, UISCALE(120), y, UISCALE(300), UISCALE(20), 63);
     _file->x_map ();
-    _save = new X_tbutton (W, this, &but1, 440, y, "Save", 0, B_SAVE);
+    _save = new X_tbutton (W, this, &but1, UISCALE(440), y, "Save", 0, B_SAVE);
     _save->x_map ();
-    _load = new X_tbutton (W, this, &but1, 520, y, "Load", 0, B_LOAD);
+    _load = new X_tbutton (W, this, &but1, UISCALE(520), y, "Load", 0, B_LOAD);
     _load->x_map ();
-    _lnew = new X_tbutton (W, this, &but1, 600, y, "New",  0, B_LNEW);
+    _lnew = new X_tbutton (W, this, &but1, UISCALE(600), y, "New",  0, B_LNEW);
     _lnew->x_map ();
-    y += 30;
-    add_text (W, 30, y, 90, 20, "Name", &text0);
-    _name = new X_textip (W, this, &texti, 120, y, 300, 20, 31, _file);
+    y += UISCALE(30);
+    add_text (W, UISCALE(30), y, UISCALE(90), UISCALE(20), "Name", &text0);
+    _name = new X_textip (W, this, &texti, UISCALE(120), y, UISCALE(300), UISCALE(20), 31, _file);
     _name->x_map ();
-    _mnem = new X_textip (W, this, &texti, 440, y, 100, 20, 7, _name);
+    _mnem = new X_textip (W, this, &texti, UISCALE(440), y, UISCALE(100), UISCALE(20), 7, _name);
     _mnem->x_map ();
-    y += 30;
-    add_text (W, 30, y, 90, 20, "Copyright", &text0);
-    _copy = new X_textip (W, this, &texti, 120, y, 500, 20, 55, _mnem);
+    y += UISCALE(30);
+    add_text (W, UISCALE(30), y, UISCALE(90), UISCALE(20), "Copyright", &text0);
+    _copy = new X_textip (W, this, &texti, UISCALE(120), y, UISCALE(500), UISCALE(20), 55, _mnem);
     _copy->x_map ();
-    y += 30;
-    add_text (W, 30, y, 90, 20, "Comments", &text0);
-    _comm = new X_textip (W, this, &texti, 120, y, 500, 20, 63, _copy);
+    y += UISCALE(30);
+    add_text (W, UISCALE(30), y, UISCALE(90), UISCALE(20), "Comments", &text0);
+    _comm = new X_textip (W, this, &texti, UISCALE(120), y, UISCALE(500), UISCALE(20), 63, _copy);
     _comm->x_map ();
     _file->callb_modified ();
     _name->callb_modified ();
@@ -206,155 +206,155 @@ Editwin::Editwin (X_window *parent, X_callback *callb, int xp, int yp, X_resman 
     _copy->callb_modified ();
     _comm->callb_modified ();
 
-    y += 40;
-    x = 28;
-    but1.size.x = 60;
+    y += UISCALE(40);
+    x = UISCALE(28);
+    but1.size.x = UISCALE(60);
     for (i = 0; i < N_PFTB; i++)     
     {
         _pftb [i] = new X_tbutton (W, this, &but1, x, y, _pftb_text [i], 0, B_PFTB + i);
 	_pftb [i]->x_map ();
-        x += 60;
+        x += UISCALE(60);
     }
-    _pedal = new X_tbutton (W, this, &but1, x + 20, y, "Pedal", 0, B_PEDAL);
+    _pedal = new X_tbutton (W, this, &but1, x + UISCALE(20), y, "Pedal", 0, B_PEDAL);
     _pedal->x_map ();
 
-    x = 0;
-    y += 40;
-    add_text (W,  28 + x, y,  80, 20, "Volume", &text1);
-    add_text (W, 240 + x, y, 150, 20, "Instability (c)",  &text2);
-    _vol_fun = new Functionwin (W, this, x + 28, y + 20, Colors.func_bg, Colors.func_gr, Colors.func_mk);
-    _vol_fun->set_xparam (11, FW_X0, FW_DX);
+    x = UISCALE(0);
+    y += UISCALE(40);
+    add_text (W, UISCALE( 28) + x, y, UISCALE( 80), UISCALE(20), "Volume", &text1);
+    add_text (W, UISCALE(240) + x, y, UISCALE(150), UISCALE(20), "Instability (c)",  &text2);
+    _vol_fun = new Functionwin (W, this, x + UISCALE(28), y + UISCALE(20), Colors.func_bg, Colors.func_gr, Colors.func_mk);
+    _vol_fun->set_xparam (11, UISCALE(FW_X0), UISCALE(FW_DX));
     _vol_fun->set_yparam (0, &sca_dBsm, XftColors.func_d1->pixel);
     _vol_fun->set_yparam (1, &sca_Tu4,  XftColors.func_d2->pixel);
     _vol_fun->show ();
-    _vol_nsc = new N_scale (W, this, x + 28, y + 20 + _vol_fun->ys ());
+    _vol_nsc = new N_scale (W, this, x + UISCALE(28), y + UISCALE(20) + _vol_fun->ys ());
     _vol_nsc->x_map ();
-    (new X_vscale (W, &sca_dBsm, x, y + 20, 28))->x_map ();
-    (new X_vscale (W, &sca_Tu4, x + 28 + _vol_fun->xs (), y + 20, 28))->x_map ();
+    (new X_vscale (W, &sca_dBsm, x, y + UISCALE(20), UISCALE(28)))->x_map ();
+    (new X_vscale (W, &sca_Tu4, x + UISCALE(28) + _vol_fun->xs (), y + UISCALE(20), UISCALE(28)))->x_map ();
 
-    x += 420;
-    add_text (W,  28 + x, y, 150, 20, "Tuning offset (Hz)", &text1);
-    add_text (W, 240 + x, y, 150, 20, "Random error (Hz)",  &text2);
-    _tun_fun = new Functionwin (W, this, x + 28, y + 20, Colors.func_bg, Colors.func_gr, Colors.func_mk);
-    _tun_fun->set_xparam (11, FW_X0, FW_DX);
+    x += UISCALE(420);
+    add_text (W, UISCALE( 28) + x, y, UISCALE(150), UISCALE(20), "Tuning offset (Hz)", &text1);
+    add_text (W, UISCALE(240) + x, y, UISCALE(150), UISCALE(20), "Random error (Hz)",  &text2);
+    _tun_fun = new Functionwin (W, this, x + UISCALE(28), y + UISCALE(20), Colors.func_bg, Colors.func_gr, Colors.func_mk);
+    _tun_fun->set_xparam (11, UISCALE(FW_X0), UISCALE(FW_DX));
     _tun_fun->set_yparam (0, &sca_Tu1, XftColors.func_d1->pixel);
     _tun_fun->set_yparam (1, &sca_Tu2, XftColors.func_d2->pixel);
     _tun_fun->show ();
-    _tun_nsc = new N_scale (W, this, x + 28, y + 20 + _tun_fun->ys ());
+    _tun_nsc = new N_scale (W, this, x + UISCALE(28), y + UISCALE(20) + _tun_fun->ys ());
     _tun_nsc->x_map ();
-    (new X_vscale (W, &sca_Tu1, x, y + 20, 28))->x_map ();
-    (new X_vscale (W, &sca_Tu2, x + 28 + _tun_fun->xs (), y + 20, 28))->x_map ();
+    (new X_vscale (W, &sca_Tu1, x, y + UISCALE(20), UISCALE(28)))->x_map ();
+    (new X_vscale (W, &sca_Tu2, x + UISCALE(28) + _tun_fun->xs (), y + UISCALE(20), UISCALE(28)))->x_map ();
 
-    x = 0;
-    y += 45 + _tun_fun->ys (); 
-    add_text (W,  28 + x, y, 150, 20, "Attack time (ms)",  &text1);
-    add_text (W, 240 + x, y, 150, 20, "Attack detune (c)", &text2);
-    _atu_fun = new Functionwin (W, this, x + 28, y + 20, Colors.func_bg, Colors.func_gr, Colors.func_mk);
-    _atu_fun->set_xparam (11, FW_X0, FW_DX);
+    x = UISCALE(0);
+    y += UISCALE(45) + _tun_fun->ys ();
+    add_text (W, UISCALE( 28) + x, y, UISCALE(150), UISCALE(20), "Attack time (ms)",  &text1);
+    add_text (W, UISCALE(240) + x, y, UISCALE(150), UISCALE(20), "Attack detune (c)", &text2);
+    _atu_fun = new Functionwin (W, this, x + UISCALE(28), y + UISCALE(20), Colors.func_bg, Colors.func_gr, Colors.func_mk);
+    _atu_fun->set_xparam (11, UISCALE(FW_X0), UISCALE(FW_DX));
     _atu_fun->set_yparam (0, &sca_Tatt, XftColors.func_d1->pixel);
     _atu_fun->set_yparam (1, &sca_Tu3,  XftColors.func_d2->pixel);
     _atu_fun->show ();
-    _atu_nsc = new N_scale (W, this, x + 28, y + 20 + _atu_fun->ys ());
+    _atu_nsc = new N_scale (W, this, x + UISCALE(28), y + UISCALE(20) + _atu_fun->ys ());
     _atu_nsc->x_map ();
-    (new X_vscale (W, &sca_Tatt, x, y + 20, 28))->x_map ();
-    (new X_vscale (W, &sca_Tu3, x + 28 + _atu_fun->xs (), y + 20, 28))->x_map ();
+    (new X_vscale (W, &sca_Tatt, x, y + UISCALE(20), UISCALE(28)))->x_map ();
+    (new X_vscale (W, &sca_Tu3, x + UISCALE(28) + _atu_fun->xs (), y + UISCALE(20), UISCALE(28)))->x_map ();
 
-    x += 420;
-    add_text (W,  28 + x, y, 150, 20, "Decay time (ms)",  &text1);
-    add_text (W, 240 + x, y, 150, 20, "Decay detune (c)", &text2);
-    _dtu_fun = new Functionwin (W, this, x + 28, y + 20, Colors.func_bg, Colors.func_gr, Colors.func_mk);
-    _dtu_fun->set_xparam (11, FW_X0, FW_DX);
+    x += UISCALE(420);
+    add_text (W, UISCALE( 28) + x, y, UISCALE(150), UISCALE(20), "Decay time (ms)",  &text1);
+    add_text (W, UISCALE(240) + x, y, UISCALE(150), UISCALE(20), "Decay detune (c)", &text2);
+    _dtu_fun = new Functionwin (W, this, x + UISCALE(28), y + UISCALE(20), Colors.func_bg, Colors.func_gr, Colors.func_mk);
+    _dtu_fun->set_xparam (11, UISCALE(FW_X0), UISCALE(FW_DX));
     _dtu_fun->set_yparam (0, &sca_Tatt, XftColors.func_d1->pixel);
     _dtu_fun->set_yparam (1, &sca_Tu3,  XftColors.func_d2->pixel);
     _dtu_fun->show ();
-    _dtu_nsc = new N_scale (W, this, x + 28, y + 20 + _dtu_fun->ys ());
+    _dtu_nsc = new N_scale (W, this, x + UISCALE(28), y + UISCALE(20) + _dtu_fun->ys ());
     _dtu_nsc->x_map ();
-    (new X_vscale (W, &sca_Tatt, x, y + 20, 28))->x_map ();
-    (new X_vscale (W, &sca_Tu3,  x + 28 + _dtu_fun->xs (), y + 20, 28))->x_map ();
+    (new X_vscale (W, &sca_Tatt, x, y + UISCALE(20), UISCALE(28)))->x_map ();
+    (new X_vscale (W, &sca_Tu3,  x + UISCALE(28) + _dtu_fun->xs (), y + UISCALE(20), UISCALE(28)))->x_map ();
 
-    y += 45 + _dtu_fun->ys (); 
-    _tabh [0] = y + 20;
+    y += UISCALE(45) + _dtu_fun->ys ();
+    _tabh [0] = y + UISCALE(20);
 
 
-    _tabw [1] = W = new X_window (this, 0, 20, _xs, _ys, Colors.main_bg);
-    y = 15;
-    _lev_msl = new Multislider (W, this, 28, y, Colors.func_gr, Colors.func_mk);
-    _lev_msl->set_xparam (64, 5, 12, 7);
+    _tabw [1] = W = new X_window (this, UISCALE(0), UISCALE(20), _xs, _ys, Colors.main_bg);
+    y = UISCALE(15);
+    _lev_msl = new Multislider (W, this, UISCALE(28), y, Colors.func_gr, Colors.func_mk);
+    _lev_msl->set_xparam (64, UISCALE(5), UISCALE(12), UISCALE(7));
     _lev_msl->set_yparam (&sca_dBlg, 0);     
     _lev_msl->set_colors (XftColors.func_d0->pixel, XftColors.func_d1->pixel);
     _lev_msl->show ();
-    _lev_hsc = new H_scale (W, this, 28, y + 306);
+    _lev_hsc = new H_scale (W, this, UISCALE(28), y + UISCALE(306));
     _lev_hsc->x_map ();
-    (new X_vscale (W, &sca_dBlg, 0, y, 28))->x_map ();
-    y += 335;
-    _lev_fun = new Functionwin (W, this, 28, y, Colors.func_bg, Colors.func_gr, Colors.func_mk);
-    _lev_fun->set_xparam (11, FW_X0, FW_DX);
+    (new X_vscale (W, &sca_dBlg, UISCALE(0), y, UISCALE(28)))->x_map ();
+    y += UISCALE(335);
+    _lev_fun = new Functionwin (W, this, UISCALE(28), y, Colors.func_bg, Colors.func_gr, Colors.func_mk);
+    _lev_fun->set_xparam (11, UISCALE(FW_X0), UISCALE(FW_DX));
     _lev_fun->set_yparam (0, &sca_dBlg, XftColors.func_d1->pixel);
     _lev_fun->show ();
-    _lev_nsc = new N_scale (W, this, 28, y + 306);
+    _lev_nsc = new N_scale (W, this, UISCALE(28), y + UISCALE(306));
     _lev_nsc->x_map ();
-    (new X_vscale (W, &sca_dBlg, 0, y, 28))->x_map ();
-    add_text (W, 600, y, 150, 20, "Harmonic level (dB)", &text1);
-    y += 335;
-    _tabh [1] = y + 20;
+    (new X_vscale (W, &sca_dBlg, UISCALE(0), y, UISCALE(28)))->x_map ();
+    add_text (W, UISCALE(600), y, UISCALE(150), UISCALE(20), "Harmonic level (dB)", &text1);
+    y += UISCALE(335);
+    _tabh [1] = y + UISCALE(20);
 
         
-    _tabw [2] = W = new X_window (this, 0, 20, _xs, _ys, Colors.main_bg);
-    y = 15;
-    _att_msl = new Multislider (W, this, 28, y, Colors.func_gr, Colors.func_mk);
-    _att_msl->set_xparam (64, 5, 12, 7);
+    _tabw [2] = W = new X_window (this, UISCALE(0), UISCALE(20), _xs, _ys, Colors.main_bg);
+    y = UISCALE(15);
+    _att_msl = new Multislider (W, this, UISCALE(28), y, Colors.func_gr, Colors.func_mk);
+    _att_msl->set_xparam (64, UISCALE(5), UISCALE(12), UISCALE(7));
     _att_msl->set_yparam (&sca_Tatt, 0);     
     _att_msl->set_colors (XftColors.func_d0->pixel, XftColors.func_d1->pixel);
     _att_msl->show ();
-    _att_hsc = new H_scale (W, this, 28, y + 201);
+    _att_hsc = new H_scale (W, this, UISCALE(28), y + UISCALE(201));
     _att_hsc->x_map ();
-    (new X_vscale (W, &sca_Tatt, 0, y, 28))->x_map ();
-    y += 230;
-    _atp_msl = new Multislider (W, this, 28, y, Colors.func_gr, Colors.func_mk);
-    _atp_msl->set_xparam (64, 5, 12, 7);
+    (new X_vscale (W, &sca_Tatt, UISCALE(0), y, UISCALE(28)))->x_map ();
+    y += UISCALE(230);
+    _atp_msl = new Multislider (W, this, UISCALE(28), y, Colors.func_gr, Colors.func_mk);
+    _atp_msl->set_xparam (64, UISCALE(5), UISCALE(12), UISCALE(7));
     _atp_msl->set_yparam (&sca_Patt, 1);     
     _atp_msl->set_colors (XftColors.func_d0->pixel, XftColors.func_d2->pixel);
     _atp_msl->show ();
-    _atp_hsc = new H_scale (W, this, 28, y + 201);
+    _atp_hsc = new H_scale (W, this, UISCALE(28), y + UISCALE(201));
     _atp_hsc->x_map ();
-    (new X_vscale (W, &sca_Patt, 0, y, 28))->x_map ();
-    y += 230;
-    _att_fun = new Functionwin (W, this, 28, y, Colors.func_bg, Colors.func_gr, Colors.func_mk);
-    _att_fun->set_xparam (11, FW_X0, FW_DX);
+    (new X_vscale (W, &sca_Patt, UISCALE(0), y, UISCALE(28)))->x_map ();
+    y += UISCALE(230);
+    _att_fun = new Functionwin (W, this, UISCALE(28), y, Colors.func_bg, Colors.func_gr, Colors.func_mk);
+    _att_fun->set_xparam (11, UISCALE(FW_X0), UISCALE(FW_DX));
     _att_fun->set_yparam (0, &sca_Tatt, XftColors.func_d1->pixel);
     _att_fun->set_yparam (1, &sca_Patt, XftColors.func_d2->pixel);
     _att_fun->show ();
-    _att_nsc = new N_scale (W, this, 28, y + 201);
+    _att_nsc = new N_scale (W, this, UISCALE(28), y + UISCALE(201));
     _att_nsc->x_map ();
-    (new X_vscale (W, &sca_Tatt,                    0, y, 28))->x_map ();
-    (new X_vscale (W, &sca_Patt, 28 + _att_fun->xs (), y, 28))->x_map ();
-    add_text (W, 600, y, 150, 20, "Attack time (ms)", &text1);
-    add_text (W, 600, y + 20, 150, 20, "Attack peak (dB)", &text2);
-    y += 230;
-    _tabh [2] = y + 20;
+    (new X_vscale (W, &sca_Tatt,                    UISCALE(0), y, UISCALE(28)))->x_map ();
+    (new X_vscale (W, &sca_Patt, UISCALE(28) + _att_fun->xs (), y, UISCALE(28)))->x_map ();
+    add_text (W, UISCALE(600), y, UISCALE(150), UISCALE(20), "Attack time (ms)", &text1);
+    add_text (W, UISCALE(600), y + UISCALE(20), UISCALE(150), UISCALE(20), "Attack peak (dB)", &text2);
+    y += UISCALE(230);
+    _tabh [2] = y + UISCALE(20);
 
 
-    _tabw [3] = W = new X_window (this, 0, 20, _xs, _ys, Colors.main_bg);
-    y = 15;
-    _ran_msl = new Multislider (W, this, 28, y, Colors.func_gr, Colors.func_mk);
-    _ran_msl->set_xparam (64, 5, 12, 7);
+    _tabw [3] = W = new X_window (this, UISCALE(0), UISCALE(20), _xs, _ys, Colors.main_bg);
+    y = UISCALE(15);
+    _ran_msl = new Multislider (W, this, UISCALE(28), y, Colors.func_gr, Colors.func_mk);
+    _ran_msl->set_xparam (64, UISCALE(5), UISCALE(12), UISCALE(7));
     _ran_msl->set_yparam (&sca_0_12, 0);     
     _ran_msl->set_colors (XftColors.func_d0->pixel, XftColors.func_d1->pixel);
     _ran_msl->show ();
-    _ran_hsc = new H_scale (W, this, 28, y + 201);
+    _ran_hsc = new H_scale (W, this, UISCALE(28), y + UISCALE(201));
     _ran_hsc->x_map ();
-    (new X_vscale (W, &sca_0_12, 0, y, 28))->x_map ();
-    y += 230;
-    _ran_fun = new Functionwin (W, this, 28, y, Colors.func_bg, Colors.func_gr, Colors.func_mk);
-    _ran_fun->set_xparam (11, FW_X0, FW_DX);
+    (new X_vscale (W, &sca_0_12, UISCALE(0), y, UISCALE(28)))->x_map ();
+    y += UISCALE(230);
+    _ran_fun = new Functionwin (W, this, UISCALE(28), y, Colors.func_bg, Colors.func_gr, Colors.func_mk);
+    _ran_fun->set_xparam (11, UISCALE(FW_X0), UISCALE(FW_DX));
     _ran_fun->set_yparam (0, &sca_0_12, XftColors.func_d1->pixel);
     _ran_fun->show ();
-    _ran_nsc = new N_scale (W, this, 28, y + 201);
+    _ran_nsc = new N_scale (W, this, UISCALE(28), y + UISCALE(201));
     _ran_nsc->x_map ();
-    (new X_vscale (W, &sca_0_12, 0, y, 28))->x_map ();
-    add_text (W, 600, y, 150, 20, "Random level (dB)", &text1);
-    y += 230;
-    _tabh [3] = y + 20;
+    (new X_vscale (W, &sca_0_12, UISCALE(0), y, UISCALE(28)))->x_map ();
+    add_text (W, UISCALE(600), y, UISCALE(150), UISCALE(20), "Random level (dB)", &text1);
+    y += UISCALE(230);
+    _tabh [3] = y + UISCALE(20);
     _ctab = -1;
     _cpft = -1;
 }

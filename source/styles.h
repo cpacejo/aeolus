@@ -102,6 +102,7 @@ struct xftfonts
 };
 
 
+extern int              uiscale;
 extern struct colors    Colors;
 extern struct fonts     Fonts;
 extern struct xftcolors XftColors;
@@ -115,5 +116,6 @@ extern X_slider_style   sli1;
 
 extern void init_styles (X_display *disp, X_resman *xrm);
 
+#define UISCALE(x) ((x) * uiscale)
 
 #endif

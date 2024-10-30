@@ -30,7 +30,7 @@
 
 
 Midimatrix::Midimatrix (X_window *parent, X_callback *callb, int xp, int yp) :
-    X_window (parent, xp, yp, 100, 100, Colors.midi_bg),
+    X_window (parent, xp, yp, UISCALE(100), UISCALE(100), Colors.midi_bg),
     _callb (callb),
     _mapped (false)
 {
@@ -65,8 +65,8 @@ void Midimatrix::init (M_ifc_init *M)
 	}
     }
     for (i = 0; i < 16; i++) _chconf [i] = 0;
-    _xs = XL + 16 * DX + XR;
-    _ys = YT + (_nkeybd + _ndivis + 1) * DY + YB;
+    _xs = UISCALE(XL + 16 * DX + XR);
+    _ys = UISCALE(YT + (_nkeybd + _ndivis + 1) * DY + YB);
     x_resize (_xs, _ys);
     x_map ();
 }
@@ -120,60 +120,60 @@ void Midimatrix::redraw (void)
     D.clearwin ();
     D.setfunc (GXcopy);
     D.setcolor (Colors.midi_gr1);
-    for (i = 0, x = XL + DX; i < 16; i++, x += DX)
+    for (i = 0, x = UISCALE(XL + DX); i < 16; i++, x += UISCALE(DX))
     {
-	D.move (x, YT);
-        D.draw (x, _ys - YT);
+	D.move (x, UISCALE(YT));
+        D.draw (x, _ys - UISCALE(YT));
     }
-    for (i = 0, y = YT; i <= _nkeybd + _ndivis + 1; i++, y += DY)
+    for (i = 0, y = UISCALE(YT); i <= _nkeybd + _ndivis + 1; i++, y += UISCALE(DY))
     {
-	D.move (XR, y);
-        D.rdraw (_xs - 2 * XR, 0);
+	D.move (UISCALE(XR), y);
+        D.rdraw (_xs - UISCALE(2 * XR), 0);
     }
     D.setcolor (XftColors.midi_fg);
     D.setfont (XftFonts.midimt);
-    d = (DY + D.textascent () - D.textdescent ()) / 2;
-    for (i = 0, y = YT; i < _nkeybd + _ndivis; i++, y += DY)
+    d = (UISCALE(DY) + D.textascent () - D.textdescent ()) / 2;
+    for (i = 0, y = UISCALE(YT); i < _nkeybd + _ndivis; i++, y += UISCALE(DY))
     {
-        D.move (XL - 40, y + d);
+        D.move (UISCALE(XL - 40), y + d);
         D.drawstring (_labels [i], 0);
     }
-    x = XL + DX / 2;
-    y += DY;
+    x = UISCALE(XL + DX / 2);
+    y += UISCALE(DY);
     for (i = 1; i <= 16; i++)
     {
 	sprintf (s, "%d", i);
         D.move (x, y + d);
         D.drawstring (s, 0);
-        x += DX;
+        x += UISCALE(DX);
     } 
     D.setcolor (Colors.midi_gr2);
-    D.move (XL, YT);
-    D.rdraw (0, _ys - 2 * YT);
-    y = YT;
-    D.move (XR, y);
-    D.rdraw (_xs - 2 * XR, 0);
+    D.move (UISCALE(XL), UISCALE(YT));
+    D.rdraw (0, _ys - UISCALE(2 * YT));
+    y = UISCALE(YT);
+    D.move (UISCALE(XR), y);
+    D.rdraw (_xs - UISCALE(2 * XR), 0);
     D.setcolor (XftColors.midi_fg);
-    D.move (10, y + d);
+    D.move (UISCALE(10), y + d);
     D.drawstring ("Keyboards", -1);
-    y += _nkeybd * DY;
+    y += _nkeybd * UISCALE(DY);
     D.setcolor (Colors.midi_gr2);
-    D.move (XR, y);
-    D.rdraw (_xs - 2 * XR, 0);
+    D.move (UISCALE(XR), y);
+    D.rdraw (_xs - UISCALE(2 * XR), 0);
     D.setcolor (XftColors.midi_fg);
-    D.move (10, y + d);
+    D.move (UISCALE(10), y + d);
     D.drawstring ("Divisions", -1);
-    y += _ndivis * DY;
+    y += _ndivis * UISCALE(DY);
     D.setcolor (Colors.midi_gr2);
-    D.move (XR, y);
-    D.rdraw (_xs - 2 * XR, 0);
+    D.move (UISCALE(XR), y);
+    D.rdraw (_xs - UISCALE(2 * XR), 0);
     D.setcolor (XftColors.midi_fg);
-    D.move (10, y + d);
+    D.move (UISCALE(10), y + d);
     D.drawstring ("Control", -1);
-    y += DY;
+    y += UISCALE(DY);
     D.setcolor (Colors.midi_gr2);
-    D.move (XR, y);
-    D.rdraw (_xs - 2 * XR, 0);
+    D.move (UISCALE(XR), y);
+    D.rdraw (_xs - UISCALE(2 * XR), 0);
     D.setcolor (Colors.midi_gr2);
     D.move (_xs - 1, 0);
     D.rdraw (0, _ys - 1);
@@ -204,9 +204,9 @@ void Midimatrix::plot_conn (int x, int y)
     else if (y < _nkeybd + _ndivis)  D.setcolor (Colors.midi_bg ^ Colors.midi_co2);
     else                             D.setcolor (Colors.midi_bg ^ Colors.midi_co3);
     D.setfunc (GXxor);
-    x = XL + x * DX + 5;
-    y = YT + y * DY + 5;
-    D.fillrect (x, y, x + DX - 9, y + DY - 9);
+    x = UISCALE(XL + x * DX + 5);
+    y = UISCALE(YT + y * DY + 5);
+    D.fillrect (x, y, x + UISCALE(DX - 10) + 1, y + UISCALE(DY - 10) + 1);
 }    
 
 
@@ -214,11 +214,11 @@ void Midimatrix::bpress (XButtonEvent *E)
 {
     int i, j, k, m, x, y;
 
-    x = E->x - XL;
-    y = E->y - YT;
+    x = E->x - UISCALE(XL);
+    y = E->y - UISCALE(YT);
     if ((x < 0) || (y < 0)) return;
-    i = x / DX;
-    j = y / DY;
+    i = x / UISCALE(DX);
+    j = y / UISCALE(DY);
     m = _nkeybd + _ndivis;
     if ((i < 0) || (i > 16)) return;
     if ((j < 0) || (j >  m)) return;

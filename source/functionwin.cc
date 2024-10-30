@@ -29,7 +29,7 @@
 
 Functionwin::Functionwin (X_window *parent, X_callback *callb, int xp, int yp,
                           unsigned long bgnd, unsigned long grid, unsigned long mark) :
-    X_window (parent, xp, yp, 100, 100, bgnd),
+    X_window (parent, xp, yp, UISCALE(100), UISCALE(100), bgnd),
     _callb (callb), _bgnd (bgnd), _grid (grid), _mark (mark)
 {
     x_add_events (ExposureMask | ButtonMotionMask | ButtonPressMask | ButtonReleaseMask);
@@ -179,7 +179,7 @@ void Functionwin::bpress (XButtonEvent *E)
     y = E->y;
     i = (x + _dx / 2) / _dx;
     if ((i < 0) || (i >= _n)) return;
-    if (abs (x - i * _dx) > 8) return;   
+    if (abs (x - i * _dx) > UISCALE(8)) return;
 
     yc = _yc [_fc].get ();
     st = _st [_fc].get ();
@@ -189,7 +189,7 @@ void Functionwin::bpress (XButtonEvent *E)
 	if (st [i])
 	{
             for (j = n = 0; j < _n; j++) if (st [j]) n++;
-	    if ((n > 1) && (abs (y - yc [i]) <= 8))
+	    if ((n > 1) && (abs (y - yc [i]) <= UISCALE(8)))
 	    {
                 plot_line (_fc);
                 st [i] = 0;
@@ -225,7 +225,7 @@ void Functionwin::bpress (XButtonEvent *E)
     {
 	for (j = 0; j < NFUNC; j++)
 	{
-	    if (_sc [j] && _st [j][i] && (abs (_yc [j][i] - y) <= 8))
+	    if (_sc [j] && _st [j][i] && (abs (_yc [j][i] - y) <= UISCALE(8)))
             {
 		_fc = j;
                 _ic = i;     
@@ -310,7 +310,7 @@ void Functionwin::plot_line (int k)
 
     x0 = x1 = _x0;
     i0 = 0;
-    if (st [0]) D.drawrect (x0 - 4, yc [i0] - 4, x0 + 4, yc [i0] + 4);
+    if (st [0]) D.drawrect (x0 - UISCALE(4), yc [i0] - UISCALE(4), x0 + UISCALE(4), yc [i0] + UISCALE(4));
     for (i1 = 1; i1 < _n; i1++)
     {
         x1 += _dx;
@@ -319,7 +319,7 @@ void Functionwin::plot_line (int k)
 	    if (st [i0]) D.move (x0, yc [i0]);
     	    else         D.move (x0, yc [i1]);
             D.draw (x1, yc [i1]);
-            D.drawrect (x1 - 4, yc [i1] - 4, x1 + 4, yc [i1] + 4);
+            D.drawrect (x1 - UISCALE(4), yc [i1] - UISCALE(4), x1 + UISCALE(4), yc [i1] + UISCALE(4));
             x0 = x1;
             i0 = i1;
 	}    
