@@ -403,7 +403,7 @@ void init_styles (X_display *disp, X_resman *xrm)
     sca_Tmd.marg = 0;
     sca_Tmd.font = XftFonts.scales;
     sca_Tmd.nseg = 6;
-    sca_Tmd.set_tick ( 0,  10,  0.0, "0ff");
+    sca_Tmd.set_tick ( 0,  10,  0.0, "Off");
     sca_Tmd.set_tick ( 1,  30,  0.1,     0);
     sca_Tmd.set_tick ( 2,  50,  0.2, "0.2");
     sca_Tmd.set_tick ( 3,  70,  0.3,     0);

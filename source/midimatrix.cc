@@ -127,8 +127,8 @@ void Midimatrix::redraw (void)
     }
     for (i = 0, y = YT; i <= _nkeybd + _ndivis + 1; i++, y += DY)
     {
-	D.move (0, y);
-        D.draw (_xs - XR, y);
+	D.move (XR, y);
+        D.rdraw (_xs - 2 * XR, 0);
     }
     D.setcolor (XftColors.midi_fg);
     D.setfont (XftFonts.midimt);
