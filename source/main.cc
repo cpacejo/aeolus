@@ -43,16 +43,17 @@
 
 
 #ifdef __linux__
-static const char *options = "htuAJBM:N:S:I:W:d:r:p:n:s:";
+static const char *options = "htuAJaBM:N:S:I:W:d:r:p:n:s:";
 #elif __APPLE__
-static const char *options = "htuCJBM:N:S:I:W:s:r:p:";
+static const char *options = "htuCJaBM:N:S:I:W:s:r:p:";
 #else
-static const char *options = "htuJBM:N:S:I:W:s:";
+static const char *options = "htuJaBM:N:S:I:W:s:";
 #endif
 static char  optline [1024];
 static bool  t_opt = false;
 static bool  u_opt = false;
 static bool  A_opt = false;
+static bool  a_opt = false;
 static bool  B_opt = false;
 static bool  C_opt = false;
 #ifdef __linux__
@@ -88,6 +89,7 @@ static void help (void)
     fprintf (stderr, "  -W <waves>         Name of waves directory [waves]\n");   
     fprintf (stderr, "  -J                 Use JACK (default), with options:\n");
     fprintf (stderr, "    -s               Select JACK server\n");
+    fprintf (stderr, "    -a               Autoconnect audio output\n");
     fprintf (stderr, "    -B               Ambisonics B format output\n");
     fprintf (stderr, "  -A                 Use ALSA, with options:\n");
     fprintf (stderr, "    -d <device>        Alsa device [default]\n");
@@ -125,6 +127,7 @@ static void procoptions (int ac, char *av [], const char *where)
  	case 'u' : u_opt = true;  break;
  	case 'A' : A_opt = true;  break;
 	case 'J' : A_opt = false; break;
+	case 'a' : a_opt = true; break;
 	case 'B' : B_opt = true; break;
         case 'C' : C_opt = true; break;
         case 'r' : r_val = atoi (optarg); break;
@@ -233,7 +236,7 @@ int main (int ac, char *av [])
         audio = std::make_unique <Audio_coreaudio> (N_val, &note_queue, &comm_queue, r_val, p_val);
 #endif
     if (!audio)
-        audio = std::make_unique <Audio_jack> (N_val, &note_queue, &comm_queue, s_val, B_opt, &midi_queue);
+        audio = std::make_unique <Audio_jack> (N_val, &note_queue, &comm_queue, s_val, a_opt, B_opt, &midi_queue);
     model = std::make_unique <Model> (&comm_queue, &midi_queue, audio->midimap (), audio->appname (), S_val, I_val, W_val, u_opt);
 #if __linux__
     imidi = std::make_unique <Imidi_alsa> (&note_queue, &midi_queue, audio->midimap (), audio->appname ());

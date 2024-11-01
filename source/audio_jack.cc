@@ -19,16 +19,17 @@
 
 
 #include <atomic>
+#include <memory>
 #include "audio_jack.h"
 #include <jack/midiport.h>
 #include "messages.h"
 
-Audio_jack::Audio_jack (const char *name, Lfq_u32 *qnote, Lfq_u32 *qcomm, const char *server, bool bform, Lfq_u8 *qmidi) :
+Audio_jack::Audio_jack (const char *name, Lfq_u32 *qnote, Lfq_u32 *qcomm, const char *server, bool autoconnect, bool bform, Lfq_u8 *qmidi) :
     Audio(name, qnote, qcomm),
     _qmidi (0),
     _jack_handle (0)
 {
-    init(server, bform, qmidi);
+    init(server, autoconnect, bform, qmidi);
 }
 
 Audio_jack::~Audio_jack (void)
@@ -36,7 +37,7 @@ Audio_jack::~Audio_jack (void)
     if (_jack_handle) close ();
 }
 
-void Audio_jack::init (const char *server, bool bform, Lfq_u8 *qmidi)
+void Audio_jack::init (const char *server, bool autoconnect, bool bform, Lfq_u8 *qmidi)
 {
     int                 i;
     int                 opts;
@@ -79,6 +80,26 @@ void Audio_jack::init (const char *server, bool bform, Lfq_u8 *qmidi)
 	    fprintf (stderr, "Error: can't create the '%s' jack port\n", p [i]);
 	    exit (1);
 	}
+    }
+
+    if (autoconnect)
+    {
+        const std::unique_ptr <const char *[], decltype(&jack_free) > input_ports (
+            jack_get_ports (_jack_handle, nullptr, ".* audio", JackPortIsInput | JackPortIsTerminal),
+            &jack_free
+        );
+
+        for (i = 0; input_ports [i] && i < _nplay; ++i)
+        {
+            const int err = jack_connect (_jack_handle, jack_port_name (_jack_opport [i]), input_ports [i]);
+            if (err != 0 && err != EEXIST)
+                fprintf (stderr, "Warning: unable to autoconnect Jack port '%s' to '%s'\n",
+                    jack_port_short_name (_jack_opport [i]), input_ports [i]);
+        }
+
+        for (; i < _nplay; ++i)
+            fprintf (stderr, "Warning: unable to autoconnect Jack port '%s'\n",
+                jack_port_short_name (_jack_opport [i]));
     }
 
     if (_qmidi)
