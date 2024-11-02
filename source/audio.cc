@@ -116,56 +116,56 @@ void Audio::proc_queue (Lfq_u32 *Q)
         j = (q >>  8) & 255;  // division index
         k = q & 255;          // keyboard index
 
-        switch (c)
+        switch (static_cast<command>(c))
 	{
-	case 0:
+	case command::key_off:
 	    // Single key off.
             key_off (i, 1 << k);
 	    Q->read_commit (1);
 	    break;
 
-	case 1:
+	case command::key_on:
 	    // Single key on.
             key_on (i, 1 << k);
 	    Q->read_commit (1);
 	    break;
 
-	case 2:
+	case command::midi_off:
 	    // All notes off.
             m = (k == NKEYBD) ? KMAP_ALL : (1 << k);
 	    cond_key_off (m, m);
 	    Q->read_commit (1);
 	    break;
 
-	case 3:
+	case command::unused3:
 	    Q->read_commit (1);
 	    break;
 
-        case 4:
+        case command::clr_div_mask:
 	    // Clear bit in division mask.
             _divisp [j]->clr_div_mask (k); 
 	    Q->read_commit (1);
             break;
 
-        case 5:
+        case command::set_div_mask:
 	    // Set bit in division mask.
             _divisp [j]->set_div_mask (k); 
 	    Q->read_commit (1);
             break;
 
-        case 6:
+        case command::clr_rank_mask:
 	    // Clear bit in rank mask.
             _divisp [j]->clr_rank_mask (i, k); 
 	    Q->read_commit (1);
             break;
 
-        case 7:
+        case command::set_rank_mask:
 	    // Set bit in rank mask.
             _divisp [j]->set_rank_mask (i, k); 
 	    Q->read_commit (1);
             break;
 
-        case 8:
+        case command::hold_off:
 	    // Hold off.
             printf ("HOLD OFF %d", k);
 //            _hold = KMAP_ALL;
@@ -173,7 +173,7 @@ void Audio::proc_queue (Lfq_u32 *Q)
             Q->read_commit (1);
 	    break;
 
-        case 9:
+        case command::hold_on:
 	    // Hold on.
             printf ("HOLD ON  %d", k);
 //            _hold = KMAP_ALL | KMAP_HLD;
@@ -181,14 +181,14 @@ void Audio::proc_queue (Lfq_u32 *Q)
             Q->read_commit (1);
 	    break;
 
-        case 16:
+        case command::set_tremul:
 	    // Tremulant on/off.
             if (k) _divisp [j]->trem_on (); 
             else   _divisp [j]->trem_off ();
 	    Q->read_commit (1);
             break;
 
-        case 17:
+        case command::set_dipar:
 	    // Per-division performance controllers.
 	    if (n < 2) return;
             u.i = Q->read (1);

@@ -68,6 +68,23 @@ enum class midictl: std::uint8_t
     anoff = 123  // all notes off
 };
 
+enum class command: std::uint8_t
+{
+    key_off = 0,  // single key off
+    key_on,       // single key on
+    midi_off,     // all notes off
+    unused3,
+    clr_div_mask,   // clear bit in division mask
+    set_div_mask,   // set bit in division mask
+    clr_rank_mask,  // clear bit in rank mask
+    set_rank_mask,  // set bit in rank mask
+    hold_off,  // hold off
+    hold_on,   // hold on
+
+    set_tremul = 16,  // tremulant on/off
+    set_dipar  // per-division performance controllers
+};
+
 #define SWELL_MIN 0.0f
 #define SWELL_MAX 1.0f
 #define SWELL_DEF 1.0f

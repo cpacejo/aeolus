@@ -98,7 +98,7 @@ void Imidi::proc_midi_event(const MidiEvent &ev)
 		    {
 	                if (_qnote->write_avail () > 0)
 	                {
-	                    _qnote->write (0, (1 << 24) | ((n - 36) << 16) | k);
+	                    _qnote->write (0, (static_cast<int>(command::key_on) << 24) | ((n - 36) << 16) | k);
                             _qnote->write_commit (1);
 	                } 
 		    }
@@ -116,7 +116,7 @@ void Imidi::proc_midi_event(const MidiEvent &ev)
 		    {
 	                if (_qnote->write_avail () > 0)
 	                {
-	                    _qnote->write (0, (0 << 24) | ((n - 36) << 16) | k);
+	                    _qnote->write (0, (static_cast<int>(command::key_off) << 24) | ((n - 36) << 16) | k);
                             _qnote->write_commit (1);
 	                } 
 		    }
@@ -133,7 +133,7 @@ void Imidi::proc_midi_event(const MidiEvent &ev)
 		// Hold pedal.
                 if (f & 1)
                 {
-                    c = (v > 63) ? 9 : 8;
+                    c = static_cast<int>((v > 63) ? command::hold_on : command::hold_off);
                     if (_qnote->write_avail () > 0)
                     {
                         _qnote->write (0, (c << 24) | k);
@@ -149,7 +149,7 @@ void Imidi::proc_midi_event(const MidiEvent &ev)
 		{
 	            if (_qnote->write_avail () > 0)
 	            {
-	                _qnote->write (0, (2 << 24) | NKEYBD);
+	                _qnote->write (0, (static_cast<int>(command::midi_off) << 24) | NKEYBD);
                         _qnote->write_commit (1);
 	            } 
 		}
@@ -162,7 +162,7 @@ void Imidi::proc_midi_event(const MidiEvent &ev)
 		{
 	            if (_qnote->write_avail () > 0)
 	            {
-	                _qnote->write (0, (2 << 24) | k);
+	                _qnote->write (0, (static_cast<int>(command::midi_off) << 24) | k);
                         _qnote->write_commit (1);
 	            } 
 		}

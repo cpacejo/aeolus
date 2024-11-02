@@ -751,7 +751,7 @@ void Model::set_dipar (int s, int d, int p, float v)
     if (_qcomm->write_avail () >= 2)
     {
 	u.f = v;
-	_qcomm->write (0, (17 << 24) | (p << 16) | (d << 8));
+	_qcomm->write (0, (static_cast<int>(command::set_dipar) << 24) | (p << 16) | (d << 8));
 	_qcomm->write (1, u.i);
         _qcomm->write_commit (2);
         send_event (TO_IFACE, new M_ifc_dipar (s, d, p, v));         
@@ -771,7 +771,7 @@ void Model::midi_off (int keybd)
 {
     if (_qcomm->write_avail ())
     {
-        _qcomm->write (0, (2 << 24) | keybd);
+        _qcomm->write (0, (static_cast<int>(command::midi_off) << 24) | keybd);
         _qcomm->write_commit (1);
     }
 }
@@ -1052,8 +1052,8 @@ int Model::read_instr (void)
 			strcpy (I->_mnemo, t1);
 			strcpy (I->_label, t2);
 			I->_type = Ifelm::TREMUL;  
-			I->_action0 = (16 << 24) | (d << 8) | 0;
-			I->_action1 = (16 << 24) | (d << 8) | 1;
+			I->_action0 = (static_cast<int>(command::set_tremul) << 24) | (d << 8) | 0;
+			I->_action1 = (static_cast<int>(command::set_tremul) << 24) | (d << 8) | 1;
 		    }
 		}
 	    }
@@ -1099,8 +1099,8 @@ int Model::read_instr (void)
                         i = 0;
                     bool done = false;
                     do {
-                      I->_action[0][i] = (6 << 24) | (r << 16) | (d << 8) | k;
-                      I->_action[1][i] = (7 << 24) | (r << 16) | (d << 8) | k;
+                      I->_action[0][i] = (static_cast<int>(command::clr_rank_mask) << 24) | (r << 16) | (d << 8) | k;
+                      I->_action[1][i] = (static_cast<int>(command::set_rank_mask) << 24) | (r << 16) | (d << 8) | k;
                       n = 0;
                       done = (sscanf(q, "%d%n", &r, &n) <= 0);
                       q += n;
@@ -1123,8 +1123,8 @@ int Model::read_instr (void)
                         strcat(I->_label, count[i]);
                     }
 #else
-                    I->_action0 = (6 << 24) | (r << 16) | (d << 8) | k;
-                    I->_action1 = (7 << 24) | (r << 16) | (d << 8) | k;
+                    I->_action0 = (static_cast<int>(command::clr_rank_mask) << 24) | (r << 16) | (d << 8) | k;
+                    I->_action1 = (static_cast<int>(command::set_rank_mask) << 24) | (r << 16) | (d << 8) | k;
 #endif
     		}
 	    }
@@ -1151,8 +1151,8 @@ int Model::read_instr (void)
                     I->_type = Ifelm::COUPLER;
 	            I->_keybd = k;  
                     // Action is clr / set division mask.
-                    I->_action0 = (4 << 24) | (d << 8) | k;
-                    I->_action1 = (5 << 24) | (d << 8) | k;
+                    I->_action0 = (static_cast<int>(command::clr_div_mask) << 24) | (d << 8) | k;
+                    I->_action1 = (static_cast<int>(command::set_div_mask) << 24) | (d << 8) | k;
 		}
 	    }
 	}
