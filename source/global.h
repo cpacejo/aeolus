@@ -85,6 +85,15 @@ enum class command: std::uint8_t
     set_dipar  // per-division performance controllers
 };
 
+enum class dipar
+{
+    swell = 0,  // swell
+    tfreq,      // tremulant frequency
+    tmodd       // tremulant amplitude
+};
+
+static constexpr int NDIPAR = 3;
+
 #define SWELL_MIN 0.0f
 #define SWELL_MAX 1.0f
 #define SWELL_DEF 1.0f

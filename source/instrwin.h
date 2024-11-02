@@ -23,6 +23,7 @@
 
 
 #include <clxclient.h>
+#include "global.h"
 #include "messages.h"
 
 
@@ -30,7 +31,7 @@ class Divis
 {
 public:
 
-    X_hslider  *_slid [3];
+    X_hslider  *_slid [NDIPAR];
 };
 
 
@@ -46,7 +47,7 @@ public:
     void set_tuning (M_ifc_retune *M);
 
     int   divis (void) const { return _divis; }
-    int   parid (void) const { return _parid; }
+    dipar parid (void) const { return _parid; }
     float value (void) const { return _value; }
     bool  final (void) const { return _final; }
     float freq (void) const { return _freq; }
@@ -92,7 +93,7 @@ private:
     X_slider       *_trem1_ampl;
     Divis           _divisd [NDIVIS];
     int             _divis;
-    int             _parid;
+    dipar           _parid;
     float           _value;
     bool            _final;
     int             _ntempe;

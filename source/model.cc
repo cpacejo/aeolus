@@ -403,17 +403,17 @@ void Model::proc_qmidi (void)
 	    {
 	    case midictl::swell:
 		// Swell pedal
-                set_dipar (SRC_MIDI_PAR, d, 0, SWELL_MIN + v * (SWELL_MAX - SWELL_MIN) / 127.0f);
+                set_dipar (SRC_MIDI_PAR, d, dipar::swell, SWELL_MIN + v * (SWELL_MAX - SWELL_MIN) / 127.0f);
                 break;
 
 	    case midictl::tfreq:
 		// Tremulant frequency
-                set_dipar (SRC_MIDI_PAR, d, 1, TFREQ_MIN + v * (TFREQ_MAX - TFREQ_MIN) / 127.0f);
+                set_dipar (SRC_MIDI_PAR, d, dipar::tfreq, TFREQ_MIN + v * (TFREQ_MAX - TFREQ_MIN) / 127.0f);
                 break;
 
 	    case midictl::tmodd:
 		// Tremulant amplitude
-                set_dipar (SRC_MIDI_PAR, d, 2, TMODD_MIN + v * (TMODD_MAX - TMODD_MIN) / 127.0f);
+                set_dipar (SRC_MIDI_PAR, d, dipar::tmodd, TMODD_MIN + v * (TMODD_MAX - TMODD_MIN) / 127.0f);
                 break;
 
             case midictl::bank:
@@ -536,9 +536,9 @@ void Model::init_iface (void)
     }
     for (i = 0; i < _ndivis; i++)
     {
-	for (j = 0; j < 3; j++)
+	for (j = 0; j < NDIPAR; j++)
 	{
-	    send_event (TO_IFACE, new M_ifc_dipar (0, i, j, _divis [i]._param [j]._val));
+	    send_event (TO_IFACE, new M_ifc_dipar (0, i, static_cast<dipar>(j), _divis [i]._param [j]._val));
 	}
     }
     set_mconf (0, _chconf [0]._bits);
@@ -739,19 +739,19 @@ void Model::set_aupar (int s, int a, int p, float v)
 }
 
 
-void Model::set_dipar (int s, int d, int p, float v)
+void Model::set_dipar (int s, int d, dipar p, float v)
 {
     Fparm  *P;
     union { uint32_t i; float f; } u;
     
-    P = _divis [d]._param + p;
+    P = _divis [d]._param + static_cast<int>(p);
     if (v < P->_min) v = P->_min;
     if (v > P->_max) v = P->_max;
     P->_val = v;
     if (_qcomm->write_avail () >= 2)
     {
 	u.f = v;
-	_qcomm->write (0, (static_cast<int>(command::set_dipar) << 24) | (p << 16) | (d << 8));
+	_qcomm->write (0, (static_cast<int>(command::set_dipar) << 24) | (static_cast<int>(p) << 16) | (d << 8));
 	_qcomm->write (1, u.i);
         _qcomm->write_commit (2);
         send_event (TO_IFACE, new M_ifc_dipar (s, d, p, v));         

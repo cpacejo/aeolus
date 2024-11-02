@@ -176,7 +176,7 @@ private:
     void set_ifelm (int g, int i, int m);
     void clr_group (int g);
     void set_aupar (int s, int a, int p, float v);
-    void set_dipar (int s, int d, int p, float v);
+    void set_dipar (int s, int d, dipar p, float v);
     void set_mconf (int i, uint16_t *d);
     void get_state (uint32_t *bits);
     void set_state (int bank, int pres);

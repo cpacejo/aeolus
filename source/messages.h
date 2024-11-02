@@ -246,7 +246,7 @@ class M_ifc_dipar : public ITC_mesg
 {
 public:
 
-    M_ifc_dipar (int s, int d, int p, float v) :
+    M_ifc_dipar (int s, int d, dipar p, float v) :
         ITC_mesg (MT_IFC_DIPAR),
         _srcid (s),
         _divis (d),
@@ -256,7 +256,7 @@ public:
 
     int    _srcid;
     int    _divis;
-    int    _parid;
+    dipar  _parid;
     float  _value;
 };
 

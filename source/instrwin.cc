@@ -69,7 +69,7 @@ void Instrwin::handle_callb (int k, X_window *W, XEvent *E)
             X_slider *X = (X_slider *) W;
             c = X->cbid ();
             _divis = (c >> DIVIS_BIT0) - 1;
-            _parid = c & DIVIS_MASK;
+            _parid = static_cast<dipar>(c & DIVIS_MASK);
             _value = X->get_val (); 
             _final = k == (SLIDER | X_slider::STOP);
             _callb->handle_callb (CB_DIVIS_ACT, this, E);
@@ -199,9 +199,10 @@ void Instrwin::set_dipar (M_ifc_dipar *M)
 
     if ((M->_divis >= 0) && (M->_divis < NDIVIS))
     {
-        if ((M->_parid >= 0) && (M->_parid < 3))
+        const int parid = static_cast<int>(M->_parid);
+        if ((parid >= 0) && (parid < NDIPAR))
 	{
-	    S = _divisd [M->_divis]._slid [M->_parid];
+	    S = _divisd [M->_divis]._slid [parid];
             if (S) S->set_val (M->_value);
 	}
     }
