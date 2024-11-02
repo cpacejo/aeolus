@@ -239,9 +239,9 @@ void Audio_jack::proc_jmidi (int tmax)
 	    break;
 
 	case 0xB0: // Controller
-	    switch (n)
+	    switch (static_cast<midictl>(n))
 	    {
-	    case MIDICTL_ASOFF:
+	    case midictl::asoff:
 		// All sound off, accepted on control channels only.
 		// Clears all keyboards.
                 if (f & 4)
@@ -251,7 +251,7 @@ void Audio_jack::proc_jmidi (int tmax)
                 }
 		break;
 
-	    case MIDICTL_ANOFF:
+	    case midictl::anoff:
 		// All notes off, accepted on channels controlling
 		// a keyboard.
                 if (f & 1)
@@ -261,8 +261,8 @@ void Audio_jack::proc_jmidi (int tmax)
                 }
 		break;
 	
-	    case MIDICTL_BANK:	
-	    case MIDICTL_IFELM:	
+	    case midictl::bank:
+	    case midictl::ifelm:
                 // Program bank selection or stop control, sent
                 // to model thread if on control-enabled channel.
 		if (f & 4)
@@ -275,9 +275,9 @@ void Audio_jack::proc_jmidi (int tmax)
 			_qmidi->write_commit (3);
 		    }
 		}
-	    case MIDICTL_SWELL:
-	    case MIDICTL_TFREQ:
-	    case MIDICTL_TMODD:
+	    case midictl::swell:
+	    case midictl::tfreq:
+	    case midictl::tmodd:
 		// Per-division performance controls, sent to model
                 // thread if on a channel that controls a division.
 		if (f & 2)
@@ -290,6 +290,9 @@ void Audio_jack::proc_jmidi (int tmax)
 			_qmidi->write_commit (3);
 		    }
 		}
+		break;
+
+	    default:
 		break;
 	    }
 	    break;

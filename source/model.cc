@@ -399,29 +399,29 @@ void Model::proc_qmidi (void)
 
 	case 0xB0:
 	    // Controllers.
-            switch (p)
+            switch (static_cast<midictl>(p))
 	    {
-	    case MIDICTL_SWELL:
+	    case midictl::swell:
 		// Swell pedal
                 set_dipar (SRC_MIDI_PAR, d, 0, SWELL_MIN + v * (SWELL_MAX - SWELL_MIN) / 127.0f);
                 break;
 
-	    case MIDICTL_TFREQ:
+	    case midictl::tfreq:
 		// Tremulant frequency
                 set_dipar (SRC_MIDI_PAR, d, 1, TFREQ_MIN + v * (TFREQ_MAX - TFREQ_MIN) / 127.0f);
                 break;
 
-	    case MIDICTL_TMODD:
+	    case midictl::tmodd:
 		// Tremulant amplitude
                 set_dipar (SRC_MIDI_PAR, d, 2, TMODD_MIN + v * (TMODD_MAX - TMODD_MIN) / 127.0f);
                 break;
 
-            case MIDICTL_BANK:
+            case midictl::bank:
                 // Preset bank.
  	        if (v < NBANK) _bank = v;
                 break;
 
-	    case MIDICTL_IFELM:
+	    case midictl::ifelm:
 		// Stop control.
                 if (v & 64)
   	        {
@@ -436,6 +436,9 @@ void Model::proc_qmidi (void)
                     set_ifelm (_sc_group, v & 31, _sc_cmode - 1);
 		}         
                 break;
+
+	    default:
+		break;
 	    }
 	    break;
 

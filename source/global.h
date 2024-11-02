@@ -21,6 +21,7 @@
 #ifndef __GLOBAL_H
 #define __GLOBAL_H
 
+#include <cstdint>
 #include <endian.h>
 #ifdef __BYTE_ORDER
 #if (__BYTE_ORDER == __LITTLE_ENDIAN)
@@ -55,26 +56,29 @@ static constexpr int
     NPRES  = 32;
 
 
-#define MIDICTL_SWELL 11
+enum class midictl: std::uint8_t
+{
+    swell = 11,  // swell / expression controller
+    tfreq = 12,  // tremulant frequency / effect control 1
+    tmodd = 13,  // tremulant modulation depth / effect control 2
+    bank  = 32,  // bank LSB
+    hold  = 64,  // damper pedal (sustain)
+    ifelm = 80,  // stop control / general purpose controller 5
+    asoff = 120, // all sound off
+    anoff = 123  // all notes off
+};
+
 #define SWELL_MIN 0.0f
 #define SWELL_MAX 1.0f
 #define SWELL_DEF 1.0f
 
-#define MIDICTL_TFREQ 12
 #define TFREQ_MIN 2.0f
 #define TFREQ_MAX 8.0f
 #define TFREQ_DEF 4.0f
 
-#define MIDICTL_TMODD 13
 #define TMODD_MIN 0.0f
 #define TMODD_MAX 0.6f
 #define TMODD_DEF 0.3f
-
-#define MIDICTL_BANK   32
-#define MIDICTL_HOLD   64
-#define MIDICTL_IFELM  80
-#define MIDICTL_ASOFF 120
-#define MIDICTL_ANOFF 123
 
 
 #define KMAP_ALL  0x0FFF 
