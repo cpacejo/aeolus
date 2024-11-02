@@ -59,11 +59,11 @@ static constexpr int
 enum class midictl: std::uint8_t
 {
     swell = 11,  // swell / expression controller
-    tfreq = 12,  // tremulant frequency / effect control 1
-    tmodd = 13,  // tremulant modulation depth / effect control 2
     bank  = 32,  // bank LSB
     hold  = 64,  // damper pedal (sustain)
     ifelm = 80,  // stop control / general purpose controller 5
+    tfreq = 76,  // tremulant frequency / sound controller 7 / vibrato rate
+    tmodd = 92,  // tremulant amplitude / effects 2 depth / tremolo depth
     asoff = 120, // all sound off
     anoff = 123  // all notes off
 };
