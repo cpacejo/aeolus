@@ -580,7 +580,7 @@ int Rankwave::save (const char *path, Addsynth *D, float fsamp, float fbase, flo
     data [7] = 0;
     *((float *)(data +  8)) = fsamp;
     *((float *)(data + 12)) = fbase;
-    std::copy_n (scale, 12, data + 16);
+    std::copy_n (scale, 12, reinterpret_cast<float *>(data + 16));
     fwrite (data, 1, 64, F);
 
     for (i = _n0, P = _pipes.get(); i <= _n1; i++, P++) P->save (F);
