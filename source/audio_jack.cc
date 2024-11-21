@@ -82,26 +82,6 @@ void Audio_jack::init (const char *server, bool autoconnect, bool bform, Lfq_u8 
 	}
     }
 
-    if (autoconnect)
-    {
-        const std::unique_ptr <const char *[], decltype(&jack_free) > input_ports (
-            jack_get_ports (_jack_handle, nullptr, ".* audio", JackPortIsInput | JackPortIsTerminal),
-            &jack_free
-        );
-
-        for (i = 0; input_ports [i] && i < _nplay; ++i)
-        {
-            const int err = jack_connect (_jack_handle, jack_port_name (_jack_opport [i]), input_ports [i]);
-            if (err != 0 && err != EEXIST)
-                fprintf (stderr, "Warning: unable to autoconnect Jack port '%s' to '%s'\n",
-                    jack_port_short_name (_jack_opport [i]), input_ports [i]);
-        }
-
-        for (; i < _nplay; ++i)
-            fprintf (stderr, "Warning: unable to autoconnect Jack port '%s'\n",
-                jack_port_short_name (_jack_opport [i]));
-    }
-
     if (_qmidi)
     {
         _jack_midipt = jack_port_register (_jack_handle, "Midi/in", JACK_DEFAULT_MIDI_TYPE, JackPortIsInput, 0);
@@ -121,6 +101,26 @@ void Audio_jack::init (const char *server, bool autoconnect, bool bform, Lfq_u8 
     {
         fprintf(stderr, "Error: can't activate JACK.");
         exit (1);
+    }
+
+    if (autoconnect)
+    {
+        const std::unique_ptr <const char *[], decltype(&jack_free) > input_ports (
+            jack_get_ports (_jack_handle, nullptr, ".* audio", JackPortIsInput | JackPortIsPhysical),
+            &jack_free
+        );
+
+        for (i = 0; input_ports [i] && i < _nplay; ++i)
+        {
+            const int err = jack_connect (_jack_handle, jack_port_name (_jack_opport [i]), input_ports [i]);
+            if (err != 0 && err != EEXIST)
+                fprintf (stderr, "Warning: unable to autoconnect Jack port '%s' to '%s'\n",
+                    jack_port_short_name (_jack_opport [i]), input_ports [i]);
+        }
+
+        for (; i < _nplay; ++i)
+            fprintf (stderr, "Warning: unable to autoconnect Jack port '%s'\n",
+                jack_port_short_name (_jack_opport [i]));
     }
 
     pthread_getschedparam (jack_client_thread_id (_jack_handle), &_policy, &spar);
