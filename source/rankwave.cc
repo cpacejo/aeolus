@@ -372,7 +372,8 @@ void Pipewave::save (FILE *F)
     d.i32 [7] = 0;
     fwrite (&d, 1, 32, F);
     k = _l0 +_l1 + _k_s * (PERIOD + 4);
-    fwrite (_p0.get(), k, sizeof (float), F);
+    if (k > 0)
+      fwrite (_p0.get(), k, sizeof (float), F);
 }
 
 
@@ -396,10 +397,14 @@ void Pipewave::load (FILE *F)
     _d_a = d.flt [5];
     _d_w = d.flt [6];
     k = _l0 +_l1 + _k_s * (PERIOD + 4);
-    _p0 = std::make_unique <float []> (k);
-    _p1 = _p0.get() + _l0;
-    _p2 = _p1 + _l1;
-    fread (_p0.get(), k, sizeof (float), F);
+    _p0.reset();
+    if (k > 0)
+    {
+      _p0 = std::make_unique <float []> (k);
+      _p1 = _p0.get() + _l0;
+      _p2 = _p1 + _l1;
+      fread (_p0.get(), k, sizeof (float), F);
+    }
 }
 
 
