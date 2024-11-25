@@ -19,10 +19,23 @@
 
 
 #include <algorithm>
+#include <cmath>
 #include <math.h>
 #include <memory>
+#include <numbers>
 #include <utility>
 #include "division.h"
+
+namespace
+{
+
+float compute_lowpass_alpha(const float omega_c)
+{
+    const float y = 1 - cosf(omega_c);
+    return -y + sqrtf(y*y + 2*y);
+}
+
+}
 
 
 Division::Division (Asection *asect, float fsam) :
@@ -31,14 +44,15 @@ Division::Division (Asection *asect, float fsam) :
     _dmask (0),
     _trem (0),
     _fsam (fsam),
-    _swel (1.0f),
+    _swel (1.0f), _swel_last (1.0f),
     _gain (0.1f),
     _w (0.0f),
     _c (1.0f),
     _s (0.0f),
-    _m (0.0f)
+    _m (0.0f),
+    _swel_alpha (compute_lowpass_alpha ((160.0f / fsam) * (2.0f * std::numbers::pi_v<float>))),
+    _swel_y1 { }
 {
-    for (int i = 0; i < NRANKS; i++) _ranks [i] = 0;    
 }
 
 
@@ -51,7 +65,7 @@ void Division::process (void)
     std::fill_n (_buff, NCHANN * PERIOD, 0);
     for (i = 0; i < _nrank; i++) _ranks [i]->play (1);
 
-    g = _swel;
+    g = 1.0f;
     if (_trem)
     {
 	_s += _w * _c;
@@ -76,19 +90,30 @@ void Division::process (void)
     d = (g - _gain) / PERIOD;    
     g = _gain;
     p = _buff;
+    float swel = _swel_last;
+    const float swel_d = (_swel - swel) / PERIOD;
     q = _asect->get_wptr ();
+
+    float swel_y1 [NCHANN];
+    std::copy_n (_swel_y1, 4, swel_y1);
 
     for (i = 0; i < PERIOD; i++)
     {
         g += d;
-        q [0 * PERIOD * MIXLEN] += p [0 * PERIOD] * g;
-        q [1 * PERIOD * MIXLEN] += p [1 * PERIOD] * g;
-        q [2 * PERIOD * MIXLEN] += p [2 * PERIOD] * g;
-        q [3 * PERIOD * MIXLEN] += p [3 * PERIOD] * g;
+        swel += swel_d;
+        for (int j = 0; j < NCHANN; j++)
+        {
+            const float x0 = p [j * PERIOD] * g;
+            const float swel_y0 = _swel_alpha * x0 + (1.0f - _swel_alpha) * swel_y1 [j];
+            q [j * PERIOD * MIXLEN] += std::lerp (swel_y0, x0, swel);
+            swel_y1 [j] = swel_y0;
+        }
         p++;
         q++;
     }
     _gain = g;
+    _swel_last = swel;
+    std::copy_n (swel_y1, 4, _swel_y1);
 }
 
 
