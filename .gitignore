@@ -27,6 +27,7 @@ Temporary Items
 .apdisk
 
 *.d
+*.o
 *.so
 source/aeolus
 *.ae1
