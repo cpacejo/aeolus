@@ -21,6 +21,7 @@
 #include <algorithm>
 #include <math.h>
 #include <memory>
+#include <numbers>
 #include <stop_token>
 #include <utility>
 #include "audio.h"
@@ -285,9 +286,9 @@ void Audio::proc_synth (int nframes)
             for (j = 0; j < PERIOD; j++)
             {
 	        out [0][j] = W [j];
-	        out [1][j] = 1.41 * X [j];
-	        out [2][j] = 1.41 * Y [j];
-	        out [3][j] = 1.41 * Z [j];
+	        out [1][j] = std::numbers::sqrt2_v<float> * X [j];
+	        out [2][j] = std::numbers::sqrt2_v<float> * Y [j];
+	        out [3][j] = std::numbers::sqrt2_v<float> * Z [j];
    	    }
 	}
         else
