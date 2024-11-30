@@ -36,7 +36,8 @@ all:	aeolus aeolus_x11.so aeolus_txt.so
 AEOLUS_O =	main.o audio.o model.o slave.o imidi.o addsynth.o scales.o \
 		reverb.o asection.o division.o rankwave.o rngen.o exp2ap.o lfqueue.o \
 		audio_alsa.o audio_jack.o imidi_alsa.o
-aeolus:	CPPFLAGS += $(shell $(PKG_CONF) --atleast-version 0.3.1 spatialaudio ; echo -DUSE_LIBSPATIALAUDIO=$$(( ! $$? )))
+LIBSPATIALAUDIO_VERSION = $(shell $(PKG_CONF) --modversion spatialaudio 2>/dev/null | awk -F. '{ printf "0x%x\n", ($$1*0x10000)+($$2*0x100)+$$3 }')
+aeolus:	CPPFLAGS += $(if $(LIBSPATIALAUDIO_VERSION),-DLIBSPATIALAUDIO_VERSION=$(LIBSPATIALAUDIO_VERSION))
 aeolus:	CPPFLAGS += $(shell $(PKG_CONF) --cflags spatialaudio)
 aeolus:	LDLIBS += -lzita-alsa-pcmi -lclthreads -ljack -lasound -lpthread -ldl -lrt
 aeolus:	LDLIBS += $(shell $(PKG_CONF) --libs-only-l spatialaudio)

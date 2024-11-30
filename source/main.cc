@@ -44,7 +44,7 @@
 
 static const char *options =
     "htuJaBM:N:S:I:W:s:"
-#if USE_LIBSPATIALAUDIO
+#if LIBSPATIALAUDIO_VERSION
     "b"
 #endif
 #ifdef __linux__
@@ -92,7 +92,7 @@ static void help (void)
     fprintf (stderr, "  -S <stops>         Name of stops directory [stops]\n");   
     fprintf (stderr, "  -I <instr>         Name of instrument directory [Aeolus]\n");   
     fprintf (stderr, "  -W <waves>         Name of waves directory [waves]\n");   
-#if USE_LIBSPATIALAUDIO
+#if LIBSPATIALAUDIO_VERSION
     fprintf (stderr, "  -b                 Binaural (HRTF) output\n");
 #endif
     fprintf (stderr, "  -J                 Use JACK (default), with options:\n");

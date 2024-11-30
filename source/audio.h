@@ -30,13 +30,13 @@
 #include "reverb.h"
 #include "global.h"
 #include <clthreads.h>
-#if USE_LIBSPATIALAUDIO
+#if LIBSPATIALAUDIO_VERSION
 #include <spatialaudio/AmbisonicBinauralizer.h>
 #include <spatialaudio/BFormat.h>
 #endif
 
 
-#if USE_LIBSPATIALAUDIO
+#if LIBSPATIALAUDIO_VERSION
 class CBFormatEnh : public CBFormat
 {
 public:
@@ -142,7 +142,7 @@ protected:
     Fparm           _audiopar [4];
     float           _revsize;
     float           _revtime;
-#if USE_LIBSPATIALAUDIO
+#if LIBSPATIALAUDIO_VERSION
     CBFormatEnh _binauralizer_src;
     CAmbisonicBinauralizer _binauralizer;
 #endif

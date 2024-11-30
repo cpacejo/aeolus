@@ -26,7 +26,7 @@
 #include <utility>
 #include "audio.h"
 #include "messages.h"
-#if USE_LIBSPATIALAUDIO
+#if LIBSPATIALAUDIO_VERSION
 #include <spatialaudio/BFormat.h>
 #endif
 
@@ -60,7 +60,7 @@ void Audio::init_audio (bool binaural)
 {
     int i;
 
-#if USE_LIBSPATIALAUDIO
+#if LIBSPATIALAUDIO_VERSION
     _binaural = binaural;
 #endif
     
@@ -90,7 +90,7 @@ void Audio::init_audio (bool binaural)
     }
     _hold = KMAP_ALL;
 
-#if USE_LIBSPATIALAUDIO
+#if LIBSPATIALAUDIO_VERSION
     if (_binaural)
     {
         if (!_binauralizer_src.Configure (1, true, _fsize))
@@ -106,6 +106,18 @@ void Audio::init_audio (bool binaural)
                 fprintf (stderr, "Unable to configure binauralizer; disabling.\n");
                 _binaural = false;
             }
+        #if LIBSPATIALAUDIO_VERSION < 0x0301
+            else
+            {
+                // starting with libspatialaudio 0.3.1 this is no longer a limitation
+                if (tailLength > _fsize)
+                {
+                    fprintf (stderr, "Audio period size too small for binauralizer (have %d, need >= %d); disabling.\n",
+                        _fsize, tailLength);
+                    _binaural = false;
+                }
+            }
+        #endif
         }
     }
 #endif
@@ -294,7 +306,13 @@ void Audio::proc_synth (int nframes)
  	_reverb.set_t60hi (_revtime * 0.50f, 3e3f);
     }
 
-#if USE_LIBSPATIALAUDIO
+#if LIBSPATIALAUDIO_VERSION < 0x0301
+    // spatialaudio < 0.3.1 does not support variable-size frames;
+    // permanently disable binauralization if the frame size ever differs
+    if (_binaural && static_cast<unsigned>(nframes) != _fsize) _binaural = false;
+#endif
+
+#if LIBSPATIALAUDIO_VERSION
     if (_binaural)
     {
         for (j = 0; j < 4; j++) out [j] = _binauralizer_src.RefStream (j);
@@ -331,7 +349,7 @@ void Audio::proc_synth (int nframes)
    	    }
             for (j = 0; j < 4; j++) out [j] += PERIOD;
 	}
-#if USE_LIBSPATIALAUDIO
+#if LIBSPATIALAUDIO_VERSION
         else if (_binaural)
 	{
             for (j = 0; j < PERIOD; j++)
@@ -357,8 +375,12 @@ void Audio::proc_synth (int nframes)
         }
     }
 
-#if USE_LIBSPATIALAUDIO
+#if LIBSPATIALAUDIO_VERSION
+#if LIBSPATIALAUDIO_VERSION >= 0x0301
     if (_binaural) _binauralizer.Process (&_binauralizer_src, _outbuf, nframes);
+#else
+    if (_binaural) _binauralizer.Process (&_binauralizer_src, _outbuf);
+#endif
 #endif
 }
 
