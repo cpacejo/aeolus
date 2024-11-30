@@ -29,12 +29,12 @@ class Audio_coreaudio : public Audio
 {
 public:
 
-    Audio_coreaudio (const char *jname, Lfq_u32 *qnote, Lfq_u32 *qcomm, int fsamp, int fsize);
+    Audio_coreaudio (const char *jname, Lfq_u32 *qnote, Lfq_u32 *qcomm, int fsamp, int fsize, bool binaural);
     virtual ~Audio_coreaudio (void);
 
 private:
    
-    void  init (int fsamp, int fsize);
+    void  init (int fsamp, int fsize, bool binaural);
     void close ();
     virtual void thr_main (void) {}
     void coreaudio_callback(int nframes, AudioBufferList*);

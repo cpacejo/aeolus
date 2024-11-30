@@ -42,18 +42,23 @@
 #include "iface.h"
 
 
-#ifdef __linux__
-static const char *options = "htuAJaBM:N:S:I:W:d:r:p:n:s:";
-#elif __APPLE__
-static const char *options = "htuCJaBM:N:S:I:W:s:r:p:";
-#else
-static const char *options = "htuJaBM:N:S:I:W:s:";
+static const char *options =
+    "htuJaBM:N:S:I:W:s:"
+#if USE_LIBSPATIALAUDIO
+    "b"
 #endif
+#ifdef __linux__
+    "Ad:r:p:n:"
+#elif __APPLE__
+    "Cr:p:"
+#endif
+;
 static char  optline [1024];
 static bool  t_opt = false;
 static bool  u_opt = false;
 static bool  A_opt = false;
 static bool  a_opt = false;
+static bool  b_opt = false;
 static bool  B_opt = false;
 static bool  C_opt = false;
 #ifdef __linux__
@@ -87,6 +92,9 @@ static void help (void)
     fprintf (stderr, "  -S <stops>         Name of stops directory [stops]\n");   
     fprintf (stderr, "  -I <instr>         Name of instrument directory [Aeolus]\n");   
     fprintf (stderr, "  -W <waves>         Name of waves directory [waves]\n");   
+#if USE_LIBSPATIALAUDIO
+    fprintf (stderr, "  -b                 Binaural (HRTF) output\n");
+#endif
     fprintf (stderr, "  -J                 Use JACK (default), with options:\n");
     fprintf (stderr, "    -s               Select JACK server\n");
     fprintf (stderr, "    -a               Autoconnect audio output\n");
@@ -128,6 +136,7 @@ static void procoptions (int ac, char *av [], const char *where)
  	case 'A' : A_opt = true;  break;
 	case 'J' : A_opt = false; break;
 	case 'a' : a_opt = true; break;
+	case 'b' : b_opt = true; break;
 	case 'B' : B_opt = true; break;
         case 'C' : C_opt = true; break;
         case 'r' : r_val = atoi (optarg); break;
@@ -230,13 +239,13 @@ int main (int ac, char *av [])
 
 #ifdef __linux__
     if (A_opt)
-        audio = std::make_unique <Audio_alsa> (N_val, &note_queue, &comm_queue, d_val, r_val, p_val, n_val);
+        audio = std::make_unique <Audio_alsa> (N_val, &note_queue, &comm_queue, d_val, r_val, p_val, n_val, b_opt);
 #elif __APPLE__
     if (C_opt)
-        audio = std::make_unique <Audio_coreaudio> (N_val, &note_queue, &comm_queue, r_val, p_val);
+        audio = std::make_unique <Audio_coreaudio> (N_val, &note_queue, &comm_queue, r_val, p_val, b_opt);
 #endif
     if (!audio)
-        audio = std::make_unique <Audio_jack> (N_val, &note_queue, &comm_queue, s_val, a_opt, B_opt, &midi_queue);
+        audio = std::make_unique <Audio_jack> (N_val, &note_queue, &comm_queue, s_val, a_opt, B_opt, b_opt, &midi_queue);
     model = std::make_unique <Model> (&comm_queue, &midi_queue, audio->midimap (), audio->appname (), S_val, I_val, W_val, u_opt);
 #if __linux__
     imidi = std::make_unique <Imidi_alsa> (&note_queue, &midi_queue, audio->midimap (), audio->appname ());

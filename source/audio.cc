@@ -26,6 +26,9 @@
 #include <utility>
 #include "audio.h"
 #include "messages.h"
+#if USE_LIBSPATIALAUDIO
+#include <spatialaudio/BFormat.h>
+#endif
 
 
 
@@ -41,6 +44,7 @@ Audio::Audio (const char *name, Lfq_u32 *qnote, Lfq_u32 *qcomm) :
     _fsamp (0),
     _fsize (0),
     _bform (0),
+    _binaural (0),
     _nasect (0),
     _ndivis (0)
 {
@@ -52,9 +56,13 @@ Audio::~Audio ()
 }
 
 
-void Audio::init_audio (void)
+void Audio::init_audio (bool binaural)
 {
     int i;
+
+#if USE_LIBSPATIALAUDIO
+    _binaural = binaural;
+#endif
     
     _audiopar [VOLUME]._val = 0.32f;
     _audiopar [VOLUME]._min = 0.00f;
@@ -81,6 +89,26 @@ void Audio::init_audio (void)
         _asectp [i]->set_size (_revsize);
     }
     _hold = KMAP_ALL;
+
+#if USE_LIBSPATIALAUDIO
+    if (_binaural)
+    {
+        if (!_binauralizer_src.Configure (1, true, _fsize))
+        {
+            fprintf (stderr, "Unable to configure binauralizer buffer; disabling.\n");
+            _binaural = false;
+        }
+        else
+        {
+            unsigned tailLength;
+            if (!_binauralizer.Configure (1, true, _fsamp, _fsize, tailLength, ""))
+            {
+                fprintf (stderr, "Unable to configure binauralizer; disabling.\n");
+                _binaural = false;
+            }
+        }
+    }
+#endif
 }
 
 
@@ -266,7 +294,17 @@ void Audio::proc_synth (int nframes)
  	_reverb.set_t60hi (_revtime * 0.50f, 3e3f);
     }
 
-    for (j = 0; j < _nplay; j++) out [j] = _outbuf [j];
+#if USE_LIBSPATIALAUDIO
+    if (_binaural)
+    {
+        for (j = 0; j < 4; j++) out [j] = _binauralizer_src.RefStream (j);
+    }
+    else
+#endif
+    {
+        for (j = 0; j < _nplay; j++) out [j] = _outbuf [j];
+    }
+
     for (k = 0; k < nframes; k += PERIOD)
     {
         on_synth_period(k);
@@ -285,12 +323,29 @@ void Audio::proc_synth (int nframes)
 	{
             for (j = 0; j < PERIOD; j++)
             {
+                // by default, we output FuMa (i.e. WXYZ) order and maxN* normalization
 	        out [0][j] = W [j];
 	        out [1][j] = std::numbers::sqrt2_v<float> * X [j];
 	        out [2][j] = std::numbers::sqrt2_v<float> * Y [j];
 	        out [3][j] = std::numbers::sqrt2_v<float> * Z [j];
    	    }
+            for (j = 0; j < 4; j++) out [j] += PERIOD;
 	}
+#if USE_LIBSPATIALAUDIO
+        else if (_binaural)
+	{
+            for (j = 0; j < PERIOD; j++)
+            {
+                // libspatialaudio uses ACN (i.e. WYZX) order and SN3D normalization
+                // apply an extra factor of 2 as it seems to drop the volume a lot
+                out [0][j] = 2.0f * W [j];
+                out [1][j] = 2.0f * Y [j];
+                out [2][j] = 2.0f * Z [j];
+                out [3][j] = 2.0f * X [j];
+            }
+            for (j = 0; j < 4; j++) out [j] += PERIOD;
+        }
+#endif
         else
         {
             for (j = 0; j < PERIOD; j++)
@@ -298,9 +353,13 @@ void Audio::proc_synth (int nframes)
 	        out [0][j] = W [j] + _audiopar [STPOSIT]._val * X [j] + Y [j];
 	        out [1][j] = W [j] + _audiopar [STPOSIT]._val * X [j] - Y [j];
    	    }
-	}
-	for (j = 0; j < _nplay; j++) out [j] += PERIOD;
+            for (j = 0; j < 2; j++) out [j] += PERIOD;
+        }
     }
+
+#if USE_LIBSPATIALAUDIO
+    if (_binaural) _binauralizer.Process (&_binauralizer_src, _outbuf, nframes);
+#endif
 }
 
 

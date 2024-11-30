@@ -20,11 +20,11 @@
 
 #include "audio_coreaudio.h"
 
-Audio_coreaudio::Audio_coreaudio (const char *name, Lfq_u32 *qnote, Lfq_u32 *qcomm, int fsamp, int fsize) :
+Audio_coreaudio::Audio_coreaudio (const char *name, Lfq_u32 *qnote, Lfq_u32 *qcomm, int fsamp, int fsize, bool binaural) :
     Audio (name, qnote, qcomm),
     _coreaudio_handle(0)
 {
-    init(fsamp, fsize);
+    init(fsamp, fsize, binaural);
 }
 
 Audio_coreaudio::~Audio_coreaudio (void)
@@ -32,7 +32,7 @@ Audio_coreaudio::~Audio_coreaudio (void)
     if (_coreaudio_handle) close();
 }
 
-void Audio_coreaudio::init(int fsamp, int fsize)
+void Audio_coreaudio::init(int fsamp, int fsize, bool binaural)
 {
     AudioComponentDescription outputcd = {0};
     outputcd.componentType = kAudioUnitType_Output;
@@ -105,7 +105,7 @@ void Audio_coreaudio::init(int fsamp, int fsize)
     _fsamp = sampleRate;
     _fsize = frameSize;
     _nplay = 2;
-    init_audio ();
+    init_audio (binaural);
 
     AURenderCallbackStruct input;
     input.inputProc = &coreaudio_static_callback;

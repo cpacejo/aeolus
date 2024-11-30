@@ -24,12 +24,15 @@
 #include <jack/midiport.h>
 #include "messages.h"
 
-Audio_jack::Audio_jack (const char *name, Lfq_u32 *qnote, Lfq_u32 *qcomm, const char *server, bool autoconnect, bool bform, Lfq_u8 *qmidi) :
+Audio_jack::Audio_jack (
+    const char *name, Lfq_u32 *qnote, Lfq_u32 *qcomm, const char *server, bool autoconnect,
+    bool bform, bool binaural, Lfq_u8 *qmidi
+) :
     Audio(name, qnote, qcomm),
     _qmidi (0),
     _jack_handle (0)
 {
-    init(server, autoconnect, bform, qmidi);
+    init(server, autoconnect, bform, binaural, qmidi);
 }
 
 Audio_jack::~Audio_jack (void)
@@ -37,14 +40,14 @@ Audio_jack::~Audio_jack (void)
     if (_jack_handle) close ();
 }
 
-void Audio_jack::init (const char *server, bool autoconnect, bool bform, Lfq_u8 *qmidi)
+void Audio_jack::init (const char *server, bool autoconnect, bool bform, bool binaural, Lfq_u8 *qmidi)
 {
     int                 i;
     int                 opts;
     jack_status_t       stat;
     struct sched_param  spar;
     const char          **p;
-    
+
     _bform = bform;
     _qmidi = qmidi;
 
@@ -95,7 +98,7 @@ void Audio_jack::init (const char *server, bool autoconnect, bool bform, Lfq_u8 
     _fsamp = jack_get_sample_rate (_jack_handle);
     _fsize = jack_get_buffer_size (_jack_handle);
     _jmidi_pdata = 0;
-    init_audio ();
+    init_audio (binaural);
 
     if (jack_activate (_jack_handle))
     {

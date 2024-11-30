@@ -29,12 +29,12 @@ class Audio_alsa : public Audio
 {
 public:
 
-    Audio_alsa (const char *jname, Lfq_u32 *qnote, Lfq_u32 *qcomm, const char *device, int fsamp, int fsize, int nfrag);
+    Audio_alsa (const char *jname, Lfq_u32 *qnote, Lfq_u32 *qcomm, const char *device, int fsamp, int fsize, int nfrag, bool binaural);
     virtual ~Audio_alsa ();
 
 private:
 
-    void  init (const char *device, int fsamp, int fsize, int nfrag);
+    void  init (const char *device, int fsamp, int fsize, int nfrag, bool binaural);
     void close (void);
     virtual void thr_main (void);
 

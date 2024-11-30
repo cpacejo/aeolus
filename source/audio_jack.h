@@ -28,12 +28,15 @@ class Audio_jack : public Audio
 {
 public:
 
-    Audio_jack (const char *name, Lfq_u32 *qnote, Lfq_u32 *qcomm, const char *server, bool autoconnect, bool bform, Lfq_u8 *qmidi);
+    Audio_jack (
+        const char *name, Lfq_u32 *qnote, Lfq_u32 *qcomm, const char *server, bool autoconnect,
+        bool bform, bool binaural, Lfq_u8 *qmidi
+    );
     virtual ~Audio_jack (void);
 
 private:
    
-    void  init (const char *server, bool autoconnect, bool bform, Lfq_u8 *qmidi);
+    void  init (const char *server, bool autoconnect, bool bform, bool binaural, Lfq_u8 *qmidi);
     void close (void);
 
     virtual void thr_main (void) {}

@@ -30,6 +30,22 @@
 #include "reverb.h"
 #include "global.h"
 #include <clthreads.h>
+#if USE_LIBSPATIALAUDIO
+#include <spatialaudio/AmbisonicBinauralizer.h>
+#include <spatialaudio/BFormat.h>
+#endif
+
+
+#if USE_LIBSPATIALAUDIO
+class CBFormatEnh : public CBFormat
+{
+public:
+    float* RefStream (const unsigned nChannel)
+    {
+        return m_ppfChannels [nChannel];
+    }
+};
+#endif
 
 
 class Audio : public A_thread
@@ -48,7 +64,7 @@ public:
     
 protected:
 
-    void init_audio (void);
+    void init_audio (bool binaural);
 
     void proc_queue (Lfq_u32 *);
     void proc_synth (int);
@@ -114,6 +130,7 @@ protected:
     unsigned int    _fsamp;
     unsigned int    _fsize;
     bool            _bform;
+    bool            _binaural;
     int             _nasect;
     int             _ndivis;
     std::unique_ptr <Asection> _asectp [NASECT];
@@ -125,6 +142,10 @@ protected:
     Fparm           _audiopar [4];
     float           _revsize;
     float           _revtime;
+#if USE_LIBSPATIALAUDIO
+    CBFormatEnh _binauralizer_src;
+    CAmbisonicBinauralizer _binauralizer;
+#endif
 };
 
 

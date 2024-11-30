@@ -24,10 +24,12 @@
 #include "audio_alsa.h"
 #include "messages.h"
 
-Audio_alsa::Audio_alsa (const char *name, Lfq_u32 *qnote, Lfq_u32 *qcomm, const char *device, int fsamp, int fsize, int nfrag) :
+Audio_alsa::Audio_alsa (
+    const char *name, Lfq_u32 *qnote, Lfq_u32 *qcomm, const char *device, int fsamp, int fsize, int nfrag, bool binaural
+) :
     Audio(name, qnote, qcomm)
 {
-    init(device, fsamp, fsize, nfrag);
+    init(device, fsamp, fsize, nfrag, binaural);
 }
 
 
@@ -36,7 +38,7 @@ Audio_alsa::~Audio_alsa ()
     if (_alsa_handle) close ();
 }
 
-void Audio_alsa::init (const char *device, int fsamp, int fsize, int nfrag)
+void Audio_alsa::init (const char *device, int fsamp, int fsize, int nfrag, bool binaural)
 {
     _alsa_handle = std::make_unique <Alsa_pcmi> (device, nullptr, nullptr, fsamp, fsize, nfrag);
     if (_alsa_handle->state () < 0)
@@ -48,7 +50,7 @@ void Audio_alsa::init (const char *device, int fsamp, int fsize, int nfrag)
     _fsize = fsize;
     _fsamp = fsamp;
     if (_nplay > 2) _nplay = 2;
-    init_audio ();
+    init_audio (binaural);
     _outbuf_storage = std::make_unique <float []> (_nplay * fsize);
     for (int i = 0; i < _nplay; i++) _outbuf [i] = &_outbuf_storage [i * fsize];
     _running = std::stop_source ();
