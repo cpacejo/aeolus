@@ -182,12 +182,28 @@ void Imidi::proc_midi_event(const MidiEvent &ev)
 			_qmidi->write_commit (3);
 		    }
 		}
+
 	    case midictl::swell:
 	    case midictl::tfreq:
 	    case midictl::tmodd:
 		// Per-division performance controls, sent to model
                 // thread if on a channel that controls a division.
 		if (f & 2)
+		{
+		    if (_qmidi->write_avail () >= 3)
+		    {
+			_qmidi->write (0, 0xB0 | c);
+			_qmidi->write (1, p);
+			_qmidi->write (2, v);
+			_qmidi->write_commit (3);
+		    }
+		}
+		break;
+
+	    case midictl::volume:
+		// Instrument-wide and per-asection performance controls,
+		// accepted on control channels only.
+		if (f & 4)
 		{
 		    if (_qmidi->write_avail () >= 3)
 		    {

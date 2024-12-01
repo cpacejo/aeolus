@@ -58,6 +58,7 @@ static constexpr int
 
 enum class midictl: std::uint8_t
 {
+    volume = 7,  // instrument volume / channel volume
     swell = 11,  // swell / expression controller
     bank  = 32,  // bank LSB
     hold  = 64,  // damper pedal (sustain)
@@ -105,6 +106,10 @@ static constexpr int NDIPAR = 3;
 #define TMODD_MIN 0.0f
 #define TMODD_MAX 0.6f
 #define TMODD_DEF 0.3f
+
+#define VOLUME_MIN 0.0f
+#define VOLUME_MAX 1.0f
+#define VOLUME_DEF ((100.0f / 127.0f) * (100.0f / 127.0f))  // per MIDI spec
 
 
 #define KMAP_ALL  0x0FFF 

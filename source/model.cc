@@ -27,6 +27,7 @@
 #include <time.h>
 #include <utility>
 #include "model.h"
+#include "audio.h"
 #include "scales.h"
 #include "global.h"
 
@@ -401,6 +402,11 @@ void Model::proc_qmidi (void)
 	    // Controllers.
             switch (static_cast<midictl>(p))
 	    {
+	    case midictl::volume:
+		// Instrument volume; mapped as square of CC, per MIDI spec
+                set_aupar (SRC_MIDI_PAR, -1, Audio::VOLUME, VOLUME_MIN + (v / 127.0f) * (v / 127.0f) * (VOLUME_MAX - VOLUME_MIN));
+                break;
+
 	    case midictl::swell:
 		// Swell pedal
                 set_dipar (SRC_MIDI_PAR, d, dipar::swell, SWELL_MIN + v * (SWELL_MAX - SWELL_MIN) / 127.0f);

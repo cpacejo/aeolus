@@ -317,6 +317,21 @@ void Audio_jack::proc_jmidi (int tmax)
 		}
 		break;
 
+	    case midictl::volume:
+		// Instrument-wide and per-asection performance controls,
+		// accepted on control channels only.
+		if (f & 4)
+		{
+		    if (_qmidi->write_avail () >= 3)
+		    {
+			_qmidi->write (0, t);
+			_qmidi->write (1, n);
+			_qmidi->write (2, v);
+			_qmidi->write_commit (3);
+		    }
+		}
+		break;
+
 	    default:
 		break;
 	    }

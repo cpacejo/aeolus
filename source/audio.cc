@@ -25,6 +25,7 @@
 #include <stop_token>
 #include <utility>
 #include "audio.h"
+#include "global.h"
 #include "messages.h"
 #if LIBSPATIALAUDIO_VERSION
 #include <spatialaudio/BFormat.h>
@@ -64,9 +65,9 @@ void Audio::init_audio (bool binaural)
     _binaural = binaural;
 #endif
     
-    _audiopar [VOLUME]._val = 0.32f;
-    _audiopar [VOLUME]._min = 0.00f;
-    _audiopar [VOLUME]._max = 1.00f;
+    _audiopar [VOLUME]._val = VOLUME_DEF;
+    _audiopar [VOLUME]._min = VOLUME_MIN;
+    _audiopar [VOLUME]._max = VOLUME_MAX;
     _audiopar [REVSIZE]._val = _revsize = 0.075f;
     _audiopar [REVSIZE]._min =  0.025f;
     _audiopar [REVSIZE]._max =  0.150f;
