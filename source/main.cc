@@ -97,7 +97,7 @@ static void help (void)
 #endif
     fprintf (stderr, "  -J                 Use JACK (default), with options:\n");
     fprintf (stderr, "    -s               Select JACK server\n");
-    fprintf (stderr, "    -a               Autoconnect audio output\n");
+    fprintf (stderr, "    -a               Autoconnect audio output and MIDI input\n");
     fprintf (stderr, "    -B               Ambisonics B format output\n");
     fprintf (stderr, "  -A                 Use ALSA, with options:\n");
     fprintf (stderr, "    -d <device>        Alsa device [default]\n");

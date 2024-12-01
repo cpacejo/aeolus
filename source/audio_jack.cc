@@ -102,28 +102,50 @@ void Audio_jack::init (const char *server, bool autoconnect, bool bform, bool bi
 
     if (jack_activate (_jack_handle))
     {
-        fprintf(stderr, "Error: can't activate JACK.");
+        fprintf(stderr, "Error: can't activate JACK.\n");
         exit (1);
     }
 
     if (autoconnect)
     {
-        const std::unique_ptr <const char *[], decltype(&jack_free) > input_ports (
-            jack_get_ports (_jack_handle, nullptr, ".* audio", JackPortIsInput | JackPortIsPhysical),
+        // autoconnect audio
+
+        const std::unique_ptr <const char *[], decltype(&jack_free) > audio_input_ports (
+            jack_get_ports (_jack_handle, nullptr, JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput | JackPortIsPhysical),
             &jack_free
         );
 
-        for (i = 0; input_ports [i] && i < _nplay; ++i)
+        for (i = 0; audio_input_ports [i] && i < _nplay; ++i)
         {
-            const int err = jack_connect (_jack_handle, jack_port_name (_jack_opport [i]), input_ports [i]);
+            const int err = jack_connect (_jack_handle, jack_port_name (_jack_opport [i]), audio_input_ports [i]);
             if (err != 0 && err != EEXIST)
-                fprintf (stderr, "Warning: unable to autoconnect Jack port '%s' to '%s'\n",
-                    jack_port_short_name (_jack_opport [i]), input_ports [i]);
+                fprintf (stderr, "Warning: unable to autoconnect Jack port '%s' to '%s'.\n",
+                    jack_port_short_name (_jack_opport [i]), audio_input_ports [i]);
         }
 
         for (; i < _nplay; ++i)
-            fprintf (stderr, "Warning: unable to autoconnect Jack port '%s'\n",
+            fprintf (stderr, "Warning: unable to autoconnect Jack port '%s'.\n",
                 jack_port_short_name (_jack_opport [i]));
+
+
+        // autoconnect MIDI
+
+        const std::unique_ptr <const char *[], decltype(&jack_free) > midi_output_ports (
+            jack_get_ports (_jack_handle, nullptr, JACK_DEFAULT_MIDI_TYPE, JackPortIsOutput | JackPortIsPhysical),
+            &jack_free
+        );
+
+        for (i = 0; midi_output_ports [i]; ++i)
+        {
+            const int err = jack_connect (_jack_handle, midi_output_ports [i], jack_port_name (_jack_midipt));
+            if (err != 0 && err != EEXIST)
+                fprintf (stderr, "Warning: unable to autoconnect Jack port '%s' to '%s'.\n",
+                    midi_output_ports [i], jack_port_short_name (_jack_midipt));
+        }
+
+        if (i < 1)
+            fprintf (stderr, "Warning: unable to autoconnect Jack port '%s'.\n",
+                jack_port_short_name (_jack_midipt));
     }
 
     pthread_getschedparam (jack_client_thread_id (_jack_handle), &_policy, &spar);
