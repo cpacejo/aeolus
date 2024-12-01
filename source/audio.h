@@ -62,6 +62,8 @@ public:
     int  abspri (void) const { return _abspri; }
     int  relpri (void) const { return _relpri; }
     
+    enum { VOLUME, REVSIZE, REVTIME, STPOSIT };
+
 protected:
 
     void init_audio (bool binaural);
@@ -73,8 +75,6 @@ protected:
     void proc_mesg (void);
     
     virtual void on_synth_period(int) {}
-
-    enum { VOLUME, REVSIZE, REVTIME, STPOSIT };
 
     void key_off (int i, int b)
     {

@@ -18,6 +18,8 @@
 // ----------------------------------------------------------------------------
 
 #include <math.h>
+#include "asection.h"
+#include "audio.h"
 #include "audiowin.h"
 #include "callbacks.h"
 #include "styles.h"
@@ -96,11 +98,11 @@ void Audiowin::setup (M_ifc_init *M)
         x = UISCALE(XOFFS + XSTEP * i);
         k = ASECT_STEP * (i + 1);
 
-        (S->_slid [0] = new  X_hslider (this, this, &sli1, &sca_azim, x, UISCALE( 40), UISCALE(20), k + 0))->x_map ();
-        (S->_slid [1] = new  X_hslider (this, this, &sli1, &sca_difg, x, UISCALE( 75), UISCALE(20), k + 1))->x_map ();
-        (S->_slid [2] = new  X_hslider (this, this, &sli1, &sca_dBsh, x, UISCALE(110), UISCALE(20), k + 2))->x_map ();
-        (S->_slid [3] = new  X_hslider (this, this, &sli1, &sca_dBsh, x, UISCALE(145), UISCALE(20), k + 3))->x_map ();
-        (S->_slid [4] = new  X_hslider (this, this, &sli1, &sca_dBsh, x, UISCALE(180), UISCALE(20), k + 4))->x_map ();
+        (S->_slid [Asection::AZIMUTH] = new X_hslider (this, this, &sli1, &sca_azim, x, UISCALE( 40), UISCALE(20), k + Asection::AZIMUTH))->x_map ();
+        (S->_slid [Asection::STWIDTH] = new X_hslider (this, this, &sli1, &sca_difg, x, UISCALE( 75), UISCALE(20), k + Asection::STWIDTH))->x_map ();
+        (S->_slid [Asection::DIRECT]  = new X_hslider (this, this, &sli1, &sca_dBsh, x, UISCALE(110), UISCALE(20), k + Asection::DIRECT))->x_map ();
+        (S->_slid [Asection::REFLECT] = new X_hslider (this, this, &sli1, &sca_dBsh, x, UISCALE(145), UISCALE(20), k + Asection::REFLECT))->x_map ();
+        (S->_slid [Asection::REVERB]  = new X_hslider (this, this, &sli1, &sca_dBsh, x, UISCALE(180), UISCALE(20), k + Asection::REVERB))->x_map ();
         (new X_hscale (this, &sca_azim, x, UISCALE( 30), UISCALE(10)))->x_map ();
         (new X_hscale (this, &sca_difg, x, UISCALE( 65), UISCALE(10)))->x_map ();
         (new X_hscale (this, &sca_dBsh, x, UISCALE(133), UISCALE(10)))->x_map ();
@@ -122,10 +124,10 @@ void Audiowin::setup (M_ifc_init *M)
     add_text (UISCALE( 10), UISCALE(145), UISCALE(60), UISCALE(20), "Reflect", &text0);
     add_text (UISCALE( 10), UISCALE(180), UISCALE(60), UISCALE(20), "Reverb",  &text0);
 
-    (_slid [0] = new  X_hslider (this, this, &sli1, &sca_dBsh, UISCALE(520), UISCALE(275), UISCALE(20), 0))->x_map ();
-    (_slid [1] = new  X_hslider (this, this, &sli1, &sca_size, UISCALE( 70), UISCALE(240), UISCALE(20), 1))->x_map ();
-    (_slid [2] = new  X_hslider (this, this, &sli1, &sca_trev, UISCALE( 70), UISCALE(275), UISCALE(20), 2))->x_map ();
-    (_slid [3] = new  X_hslider (this, this, &sli1, &sca_spos, UISCALE(305), UISCALE(275), UISCALE(20), 3))->x_map ();
+    (_slid [Audio::VOLUME]  = new X_hslider (this, this, &sli1, &sca_dBsh, UISCALE(520), UISCALE(275), UISCALE(20), Audio::VOLUME))->x_map ();
+    (_slid [Audio::REVSIZE] = new X_hslider (this, this, &sli1, &sca_size, UISCALE( 70), UISCALE(240), UISCALE(20), Audio::REVSIZE))->x_map ();
+    (_slid [Audio::REVTIME] = new X_hslider (this, this, &sli1, &sca_trev, UISCALE( 70), UISCALE(275), UISCALE(20), Audio::REVTIME))->x_map ();
+    (_slid [Audio::STPOSIT] = new X_hslider (this, this, &sli1, &sca_spos, UISCALE(305), UISCALE(275), UISCALE(20), Audio::STPOSIT))->x_map ();
     (new X_hscale (this, &sca_size, UISCALE( 70), UISCALE(230), UISCALE(10)))->x_map ();
     (new X_hscale (this, &sca_trev, UISCALE( 70), UISCALE(265), UISCALE(10)))->x_map ();
     (new X_hscale (this, &sca_spos, UISCALE(305), UISCALE(265), UISCALE(10)))->x_map ();

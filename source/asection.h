@@ -73,9 +73,9 @@ public:
     
     static float _refl [16];
 
-private:
-
     enum { AZIMUTH, STWIDTH, DIRECT, REFLECT, REVERB };
+
+private:
 
     int      _offs0;
     int      _offs [16];
