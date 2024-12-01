@@ -147,7 +147,7 @@ void Asection::process (float vol, float *W, float *X, float *Y, float *R)
         y [i] += gr * _sy;
     }
 
-    g = std::numbers::pi_v<float> * _apar [AZIMUTH]._val;
+    g = (2.0f * std::numbers::pi_v<float>) * _apar [AZIMUTH]._val;
     gx1 = cosf (g);
     gy1 = sinf (g);
     for (i = 0; i < PERIOD; i++)
