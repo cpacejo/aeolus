@@ -35,6 +35,14 @@ float compute_lowpass_alpha(const float omega_c)
     return -y + sqrtf(y*y + 2*y);
 }
 
+static constexpr int
+    NMASK_SET = 1 << ((NKEYBD + 1) * NLINKS),  // Set if mask is modified.
+    NMASK_ALL = (1 << ((NKEYBD + 1) * NLINKS)) - 1;
+
+// bit magic to create a multiplicand which replicates
+// a mask once for each linkage (NLINKS)
+static constexpr int NMASK_LINKREPL = NMASK_SET / ((1 << (NKEYBD + 1)) - 1);
+
 }
 
 
@@ -123,9 +131,9 @@ void Division::set_rank (int ind, std::unique_ptr <Rankwave> W, int pan, int del
 {
     if (_ranks [ind])
     {
-        W->_nmask = _ranks [ind]->_nmask | KMAP_SET;
+        W->_nmask = _ranks [ind]->_nmask | NMASK_SET;
     }
-    else W->_nmask = KMAP_SET;
+    else W->_nmask = NMASK_SET;
     _ranks [ind] = std::move (W);
     del = (int)(1e-3f * del * _fsam / PERIOD);
     if (del > 31) del = 31;
@@ -138,16 +146,18 @@ void Division::set_rank (int ind, std::unique_ptr <Rankwave> W, int pan, int del
 //
 void Division::update (int note, int16_t mask)
 {
+    const int fullmask = mask * NMASK_LINKREPL;
+
     int             r;
     Rankwave       *W;
 
     for (r = 0; r < _nrank; r++)
     {
 	W = _ranks [r].get ();
-        if (W->_nmask & KMAP_ALL)
+        if (W->_nmask & NMASK_ALL)
 	{     
-	    if (mask & W->_nmask) W->note_on (note + 36);
-	    else                  W->note_off (note + 36);
+	    if (fullmask & W->_nmask) W->note_on (note + 36);
+	    else W->note_off (note + 36);
 	}
     }
 }
@@ -162,10 +172,10 @@ void Division::update (uint16_t *keys)
     for (r = 0; r < _nrank; r++)
     {
 	W = _ranks [r].get ();
-        if (W->_nmask & KMAP_SET)
+        if (W->_nmask & NMASK_SET)
 	{
-            W->_nmask ^= KMAP_SET;
-            m = W->_nmask & KMAP_ALL;               
+            W->_nmask ^= NMASK_SET;
+            m = W->_nmask & NMASK_ALL;
             if (m)
 	    {            
 		n0 = W->n0 ();
@@ -175,8 +185,8 @@ void Division::update (uint16_t *keys)
                 if (d > 0) k += d;
                 for (n = n0; n <= n1; n++)
 	        {
-                    if (*k++ & m) W->note_on (n);
-		    else          W->note_off (n);
+                    if ((*k++ * NMASK_LINKREPL) & m) W->note_on (n);
+		    else W->note_off (n);
 		}
 	    }
             else W->all_off ();
@@ -188,19 +198,17 @@ void Division::update (uint16_t *keys)
 void Division::set_div_mask (int bit)
 {
     int       r;
-    uint16_t  b, d;
     Rankwave *W;
 
-    b = 1 << bit;
-    d = 1 << NKEYBD;
-    _dmask |= b;
+    _dmask |= 1 << bit;
     for (r = 0; r < _nrank; r++)
     {
 	W = _ranks [r].get ();
-        if (W->_nmask & d)
+        const int d = (W->_nmask >> NKEYBD) & NMASK_LINKREPL;
+        if (d)
         {
-            W->_nmask |= b;
-            W->_nmask |= KMAP_SET;
+            W->_nmask |= d << bit;
+            W->_nmask |= NMASK_SET;
         }
     }
 }
@@ -209,39 +217,37 @@ void Division::set_div_mask (int bit)
 void Division::clr_div_mask (int bit)
 {
     int       r;
-    uint16_t  b, d;
     Rankwave *W;
 
-    b = 1 << bit;
-    d = 1 << NKEYBD;
-    _dmask &= ~b;
+    _dmask &= ~(1 << bit);
     for (r = 0; r < _nrank; r++)
     {
 	W = _ranks [r].get ();
-        if (W->_nmask & d)
+        const int d = (W->_nmask >> NKEYBD) & NMASK_LINKREPL;
+        if (d)
         {
-            W->_nmask &= ~b;
-            W->_nmask |= KMAP_SET;
+            W->_nmask &= ~(d << bit);
+            W->_nmask |= NMASK_SET;
         }
     } 
 }
 
 
-void Division::set_rank_mask (int ind, int bit)
+void Division::set_rank_mask (int ind, int linkage, int bit)
 {
-    uint16_t  b = 1 << bit;
+    int b = 1 << (bit + linkage * (NKEYBD + 1));
     Rankwave *W = _ranks [ind].get ();
-    if (bit == NKEYBD) b |= _dmask;
+    if (bit == NKEYBD) b |= _dmask << (linkage * (NKEYBD + 1));
     W->_nmask |= b;
-    W->_nmask |= KMAP_SET;
+    W->_nmask |= NMASK_SET;
 }
 
 
-void Division::clr_rank_mask (int ind, int bit)
+void Division::clr_rank_mask (int ind, int linkage, int bit)
 {
-    uint16_t  b = 1 << bit;
+    int b = 1 << (bit + linkage * (NKEYBD + 1));
     Rankwave *W = _ranks [ind].get ();
-    if (bit == NKEYBD) b |= _dmask;
+    if (bit == NKEYBD) b |= _dmask << (linkage * (NKEYBD + 1));
     W->_nmask &= ~b;
-    W->_nmask |= KMAP_SET;
+    W->_nmask |= NMASK_SET;
 }

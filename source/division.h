@@ -39,8 +39,8 @@ public:
     void set_tmodd (float modd) { _m = modd; }
     void set_div_mask (int bits);
     void clr_div_mask (int bits);
-    void set_rank_mask (int ind, int bits);
-    void clr_rank_mask (int ind, int bits);
+    void set_rank_mask (int ind, int linkage, int bits);
+    void clr_rank_mask (int ind, int linkage, int bits);
     void trem_on (void)  { _trem = 1; }
     void trem_off (void) { _trem = 2; }
 

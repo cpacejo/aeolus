@@ -53,7 +53,8 @@ static constexpr int
     NRANKS = 32,
     NNOTES = 61,
     NBANK  = 32,
-    NPRES  = 32;
+    NPRES  = 32,
+    NLINKS = 3;  // maximum number of linkages to a rank (e.g. drawstop + Sfz + GC)
 
 
 enum class midictl: std::uint8_t
@@ -112,8 +113,9 @@ static constexpr int NDIPAR = 3;
 #define VOLUME_DEF ((100.0f / 127.0f) * (100.0f / 127.0f))  // per MIDI spec
 
 
-#define KMAP_ALL  0x0FFF 
-#define KMAP_SET  0x8000  // Set if mask or keymap entry is modified.
+static constexpr int
+    KMAP_SET = 1 << (NKEYBD + 1),  // Set if keymap entry is modified.
+    KMAP_ALL = (1 << (NKEYBD + 1)) - 1;
 
 
 class Fparm

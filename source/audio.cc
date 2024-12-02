@@ -197,13 +197,13 @@ void Audio::proc_queue (Lfq_u32 *Q)
 
         case command::clr_rank_mask:
 	    // Clear bit in rank mask.
-            _divisp [j]->clr_rank_mask (i, k); 
+            _divisp [j]->clr_rank_mask (i, k >> 4, k & 0xf);
 	    Q->read_commit (1);
             break;
 
         case command::set_rank_mask:
 	    // Set bit in rank mask.
-            _divisp [j]->set_rank_mask (i, k); 
+            _divisp [j]->set_rank_mask (i, k >> 4, k & 0xf);
 	    Q->read_commit (1);
             break;
 
