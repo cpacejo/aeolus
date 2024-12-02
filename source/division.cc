@@ -95,7 +95,7 @@ void Division::process (void)
     q = _asect->get_wptr ();
 
     float swel_y1 [NCHANN];
-    std::copy_n (_swel_y1, 4, swel_y1);
+    std::copy_n (_swel_y1, NCHANN, swel_y1);
 
     for (i = 0; i < PERIOD; i++)
     {
@@ -113,7 +113,7 @@ void Division::process (void)
     }
     _gain = g;
     _swel_last = swel;
-    std::copy_n (swel_y1, 4, _swel_y1);
+    std::copy_n (swel_y1, NCHANN, _swel_y1);
 }
 
 
