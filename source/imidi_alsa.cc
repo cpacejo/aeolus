@@ -119,7 +119,10 @@ void Imidi_alsa::proc_midi (void)
                 ev.note.velocity = E->data.note.velocity;
                 break;
             case SND_SEQ_EVENT_PGMCHANGE:
+                ev.control.value = E->data.control.value;
+                break;
             case SND_SEQ_EVENT_CONTROLLER:
+                ev.note.channel = E->data.note.channel;
                 ev.control.param = E->data.control.param;
                 ev.control.value = E->data.control.value;
                 break;
