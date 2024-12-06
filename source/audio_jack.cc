@@ -300,6 +300,8 @@ void Audio_jack::proc_jmidi (int tmax)
 			_qmidi->write_commit (3);
 		    }
 		}
+		break;
+
 	    case midictl::swell:
 	    case midictl::tfreq:
 	    case midictl::tmodd:

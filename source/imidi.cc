@@ -182,6 +182,7 @@ void Imidi::proc_midi_event(const MidiEvent &ev)
 			_qmidi->write_commit (3);
 		    }
 		}
+		break;
 
 	    case midictl::swell:
 	    case midictl::tfreq:
