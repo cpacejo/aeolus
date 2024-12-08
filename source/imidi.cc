@@ -201,6 +201,7 @@ void Imidi::proc_midi_event(const MidiEvent &ev)
 		}
 		break;
 
+	    case midictl::cresc:
 	    case midictl::volume:
 		// Instrument-wide and per-asection performance controls,
 		// accepted on control channels only.

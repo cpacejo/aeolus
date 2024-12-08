@@ -102,6 +102,7 @@ Model::Model (Lfq_u32      *qcomm,
     _pres (0),
     _sc_cmode (0),
     _sc_group (0),
+    _cresc_pos (0),
     _audio (0),
     _midi (0)
 {
@@ -402,6 +403,11 @@ void Model::proc_qmidi (void)
 	    // Controllers.
             switch (static_cast<midictl>(p))
 	    {
+            case midictl::cresc:
+                // Grand crescendo
+                set_cresc ((v * NPRES) / 128);
+                break;
+
 	    case midictl::volume:
 		// Instrument volume; mapped as square of CC, per MIDI spec
                 set_aupar (SRC_MIDI_PAR, -1, Audio::VOLUME, VOLUME_MIN + (v / 127.0f) * (v / 127.0f) * (VOLUME_MAX - VOLUME_MIN));
@@ -635,10 +641,10 @@ void Model::set_ifelm (int g, int i, int m)
     G = _group + g;
     if ((! _ready) || (g >= _ngroup) || (i >= G->_nifelm)) return;
     I = G->_ifelms + i;
-    s = (m == 2) ? I->_state ^ 1 : m;
-    if (I->_state != s)
+    s = (m == 2) ? (I->_state & 1) ^ 1 : m;
+    if ((I->_state & 1) != s)
     {
-	I->_state = s;
+	I->_state = (I->_state & ~1) | s;
         if (_qcomm->write_avail ())
 	{
 #if MULTISTOP
@@ -660,6 +666,36 @@ void Model::set_ifelm (int g, int i, int m)
 }
 
 
+void Model::set_linkage (int group_idx, int ifelm_idx, int state, int linkage)
+{
+    Ifelm  *I;
+    Group  *G;
+
+    G = _group + group_idx;
+    if ((! _ready) || (group_idx >= _ngroup) || (ifelm_idx >= G->_nifelm) ||
+        (linkage < 1) || (linkage >= NLINKS)) return;
+    I = G->_ifelms + ifelm_idx;
+    if (((I->_state >> linkage) & 1) != state)
+    {
+	I->_state = (I->_state & ~(1 << linkage)) | (state << linkage);
+        if (_qcomm->write_avail ())
+	{
+#if MULTISTOP
+            for (uint32_t* a = state ? I->_action[1] : I->_action[0]; *a; ++a)
+            {
+              _qcomm->write (0, *a | (linkage << 4));
+              _qcomm->write_commit (1);
+            }
+#else
+            const uint32_t a = state ? I->_action1 : I->_action0;
+            _qcomm->write (0, a | (linkage << 4));
+            _qcomm->write_commit (1);
+#endif
+	}
+    }
+}
+
+
 void Model::clr_group (int g)
 {
     int     i;
@@ -672,9 +708,9 @@ void Model::clr_group (int g)
     for (i = 0; i < G->_nifelm; i++)
     {
         I = G->_ifelms + i;
-        if (I->_state)
+        if (I->_state & 1)
         {
-	    I->_state = 0;
+	    I->_state &= ~1;
             if (_qcomm->write_avail ())
 	    {
 	       _qcomm->write (0, I->_action0);  
@@ -730,6 +766,44 @@ void Model::set_state (int bank, int pres)
         send_event (TO_IFACE, new M_ifc_preset (MT_IFC_PRRCL, bank, pres, _ngroup, d));
     }
     else send_event (TO_IFACE, new M_ifc_preset (MT_IFC_PRRCL, bank, pres, 0, 0));
+}
+
+
+void Model::set_cresc (int pos)
+{
+    if (pos == _cresc_pos) return;
+    _cresc_pos = pos;
+
+    if (pos > 0)
+    {
+        // load preset
+        uint32_t d [NGROUP];
+        if (get_preset (CRESC_BANK, pos - 1, d))
+        {
+            for (int g = 0; g < _ngroup; g++)
+            {
+                uint32_t s = d [g];
+                Group *const G = &_group [g];
+                for (int i = 0; i < G->_nifelm; i++)
+                {
+                    set_linkage (g, i, s & 1, CRESC_LINKAGE);
+                    s >>= 1;
+                }
+            }
+        }
+    }
+    else
+    {
+        // close all stops
+        for (int g = 0; g < _ngroup; g++)
+        {
+            Group *const G = &_group [g];
+            for (int i = 0; i < G->_nifelm; i++)
+                set_linkage (g, i, 0, CRESC_LINKAGE);
+        }
+    }
+
+    // TODO: show indication of crescendo position in UI
 }
 
 

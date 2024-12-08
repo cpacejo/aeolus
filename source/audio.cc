@@ -185,25 +185,25 @@ void Audio::proc_queue (Lfq_u32 *Q)
 
         case command::clr_div_mask:
 	    // Clear bit in division mask.
-            _divisp [j]->clr_div_mask (k); 
+            _divisp [j]->clr_div_mask (k & 0xf, k >> 4);
 	    Q->read_commit (1);
             break;
 
         case command::set_div_mask:
 	    // Set bit in division mask.
-            _divisp [j]->set_div_mask (k); 
+            _divisp [j]->set_div_mask (k & 0xf, k >> 4);
 	    Q->read_commit (1);
             break;
 
         case command::clr_rank_mask:
 	    // Clear bit in rank mask.
-            _divisp [j]->clr_rank_mask (i, k >> 4, k & 0xf);
+            _divisp [j]->clr_rank_mask (i, k & 0xf, k >> 4);
 	    Q->read_commit (1);
             break;
 
         case command::set_rank_mask:
 	    // Set bit in rank mask.
-            _divisp [j]->set_rank_mask (i, k >> 4, k & 0xf);
+            _divisp [j]->set_rank_mask (i, k & 0xf, k >> 4);
 	    Q->read_commit (1);
             break;
 
@@ -225,8 +225,8 @@ void Audio::proc_queue (Lfq_u32 *Q)
 
         case command::set_tremul:
 	    // Tremulant on/off.
-            if (k) _divisp [j]->trem_on (); 
-            else   _divisp [j]->trem_off ();
+            if ((k & 0xf) != 0) _divisp [j]->trem_on (k >> 4);
+            else   _divisp [j]->trem_off (k >> 4);
 	    Q->read_commit (1);
             break;
 

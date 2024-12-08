@@ -59,6 +59,7 @@ static constexpr int
 
 enum class midictl: std::uint8_t
 {
+    cresc = 4,  // grand crescendo / foot controller
     volume = 7,  // instrument volume / channel volume
     swell = 11,  // swell / expression controller
     bank  = 32,  // bank LSB
@@ -113,9 +114,13 @@ static constexpr int NDIPAR = 3;
 #define VOLUME_DEF ((100.0f / 127.0f) * (100.0f / 127.0f))  // per MIDI spec
 
 
+static constexpr int CRESC_BANK = NBANK - 1;
+static constexpr int CRESC_LINKAGE = 1;
+
+
 static constexpr int
-    KMAP_SET = 1 << (NKEYBD + 1),  // Set if keymap entry is modified.
-    KMAP_ALL = (1 << (NKEYBD + 1)) - 1;
+    KMAP_SET = 1 << NKEYBD,  // Set if keymap entry is modified.
+    KMAP_ALL = (1 << NKEYBD) - 1;
 
 
 class Fparm

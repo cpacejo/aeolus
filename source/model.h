@@ -174,12 +174,14 @@ private:
     void init_ranks (int comm);
     void proc_rank (int g, int i, int comm);
     void set_ifelm (int g, int i, int m);
+    void set_linkage (int group_idx, int ifelm_idx, int state, int linkage);
     void clr_group (int g);
     void set_aupar (int s, int a, int p, float v);
     void set_dipar (int s, int d, dipar p, float v);
     void set_mconf (int i, uint16_t *d);
     void get_state (uint32_t *bits);
     void set_state (int bank, int pres);
+    void set_cresc (int pres);
     void midi_off (int mask);
     void retune (float freq, int temp);
     void recalc (int g, int i);
@@ -222,6 +224,7 @@ private:
     int             _portid;
     int             _sc_cmode; // stop control command mode
     int             _sc_group; // stop control group number
+    int             _cresc_pos;
     Midiconf        _chconf [8];
     std::unique_ptr <Preset> _preset [NBANK][NPRES];
     M_audio_info   *_audio;

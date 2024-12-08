@@ -37,6 +37,7 @@ float compute_lowpass_alpha(const float omega_c)
 
 static constexpr int
     NMASK_SET = 1 << ((NKEYBD + 1) * NLINKS),  // Set if mask is modified.
+    NMASK_ONE_LINK = (1 << (NKEYBD + 1)) - 1,
     NMASK_ALL = (1 << ((NKEYBD + 1) * NLINKS)) - 1;
 
 // bit magic to create a multiplicand which replicates
@@ -50,7 +51,7 @@ Division::Division (Asection *asect, float fsam) :
     _asect (asect),
     _nrank (0),
     _dmask (0),
-    _trem (0),
+    _trem (0), _tmask (0),
     _fsam (fsam),
     _swel (1.0f), _swel_last (1.0f),
     _gain (0.1f),
@@ -195,12 +196,12 @@ void Division::update (uint16_t *keys)
 }
 
 
-void Division::set_div_mask (int bit)
+void Division::set_div_mask (int bit, int linkage)
 {
     int       r;
     Rankwave *W;
 
-    _dmask |= 1 << bit;
+    _dmask |= 1 << (bit + linkage * (NKEYBD + 1));
     for (r = 0; r < _nrank; r++)
     {
 	W = _ranks [r].get ();
@@ -214,12 +215,13 @@ void Division::set_div_mask (int bit)
 }
 
 
-void Division::clr_div_mask (int bit)
+void Division::clr_div_mask (int bit, int linkage)
 {
     int       r;
     Rankwave *W;
 
-    _dmask &= ~(1 << bit);
+    _dmask &= ~(1 << (bit + linkage * (NKEYBD + 1)));
+    if (((_dmask >> bit) & NMASK_LINKREPL) != 0) return;
     for (r = 0; r < _nrank; r++)
     {
 	W = _ranks [r].get ();
@@ -233,21 +235,44 @@ void Division::clr_div_mask (int bit)
 }
 
 
-void Division::set_rank_mask (int ind, int linkage, int bit)
+void Division::set_rank_mask (int ind, int bit, int linkage)
 {
     int b = 1 << (bit + linkage * (NKEYBD + 1));
     Rankwave *W = _ranks [ind].get ();
-    if (bit == NKEYBD) b |= _dmask << (linkage * (NKEYBD + 1));
+    if (bit == NKEYBD) b |= merged_dmask () << (linkage * (NKEYBD + 1));
     W->_nmask |= b;
     W->_nmask |= NMASK_SET;
 }
 
 
-void Division::clr_rank_mask (int ind, int linkage, int bit)
+void Division::clr_rank_mask (int ind, int bit, int linkage)
 {
     int b = 1 << (bit + linkage * (NKEYBD + 1));
     Rankwave *W = _ranks [ind].get ();
-    if (bit == NKEYBD) b |= _dmask << (linkage * (NKEYBD + 1));
+    if (bit == NKEYBD) b |= merged_dmask () << (linkage * (NKEYBD + 1));
     W->_nmask &= ~b;
     W->_nmask |= NMASK_SET;
+}
+
+
+int Division::merged_dmask () const
+{
+    int merged = _dmask;
+    for (int i = NLINKS; i > 1; i = (i + 1) >> 1)
+        merged |= merged >> (((i + 1) >> 1) * (NKEYBD + 1));
+    return merged & NMASK_ONE_LINK;
+}
+
+
+void Division::trem_on (int linkage)
+{
+    _tmask |= 1 << linkage;
+    _trem = 1;
+}
+
+
+void Division::trem_off (int linkage)
+{
+    _tmask &= ~(1 << linkage);
+    if (_tmask == 0) _trem = 2;
 }

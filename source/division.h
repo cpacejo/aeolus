@@ -23,6 +23,7 @@
 
 
 #include <memory>
+#include <numbers>
 #include "asection.h"
 #include "rankwave.h"
 
@@ -35,14 +36,14 @@ public:
 
     void set_rank (int ind, std::unique_ptr <Rankwave> W, int pan, int del);
     void set_swell (float stat) { _swel = stat; }
-    void set_tfreq (float freq) { _w = 6.283184f * PERIOD * freq / _fsam; }
+    void set_tfreq (float freq) { _w = 2.0f * std::numbers::pi_v<float> * PERIOD * freq / _fsam; }
     void set_tmodd (float modd) { _m = modd; }
-    void set_div_mask (int bits);
-    void clr_div_mask (int bits);
-    void set_rank_mask (int ind, int linkage, int bits);
-    void clr_rank_mask (int ind, int linkage, int bits);
-    void trem_on (void)  { _trem = 1; }
-    void trem_off (void) { _trem = 2; }
+    void set_div_mask (int bits, int linkage = 0);
+    void clr_div_mask (int bits, int linkage = 0);
+    void set_rank_mask (int ind, int bits, int linkage = 0);
+    void clr_rank_mask (int ind, int bits, int linkage = 0);
+    void trem_on (int linkage = 0);
+    void trem_off (int linkage = 0);
 
     void process (void);
     void update (int note, int16_t mask);
@@ -54,7 +55,7 @@ private:
     std::unique_ptr <Rankwave> _ranks [NRANKS];
     int        _nrank;
     int        _dmask;
-    int        _trem;
+    int        _trem, _tmask;
     float      _fsam;
     float      _swel, _swel_last;
     float      _gain;
@@ -65,8 +66,9 @@ private:
     float      _swel_alpha;
     float      _swel_y1 [NCHANN];
     float      _buff [NCHANN * PERIOD];
+
+    int merged_dmask () const;
 };
 
 
 #endif
-
