@@ -182,6 +182,8 @@ private:
     void get_state (uint32_t *bits);
     void set_state (int bank, int pres);
     void set_cresc (int pres);
+    void update_cresc ();
+    int cresc_pres () const { return _cresc_pos - 1; }
     void midi_off (int mask);
     void retune (float freq, int temp);
     void recalc (int g, int i);

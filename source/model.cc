@@ -773,12 +773,17 @@ void Model::set_cresc (int pos)
 {
     if (pos == _cresc_pos) return;
     _cresc_pos = pos;
+    update_cresc ();
+    // TODO: show indication of crescendo position in UI
+}
 
-    if (pos > 0)
+void Model::update_cresc ()
+{
+    if (_cresc_pos > 0)
     {
         // load preset
         uint32_t d [NGROUP];
-        if (get_preset (CRESC_BANK, pos - 1, d))
+        if (get_preset (CRESC_BANK, cresc_pres (), d))
         {
             for (int g = 0; g < _ngroup; g++)
             {
@@ -802,8 +807,6 @@ void Model::set_cresc (int pos)
                 set_linkage (g, i, 0, CRESC_LINKAGE);
         }
     }
-
-    // TODO: show indication of crescendo position in UI
 }
 
 
@@ -1427,6 +1430,8 @@ void Model::set_preset (int bank, int pres, uint32_t *bits)
         P = _preset [bank][pres].get ();
     }
     for (k = 0; k < _ngroup; k++) P->_bits [k] = *bits++;
+
+    if (bank == CRESC_BANK && pres == cresc_pres ()) update_cresc ();
 }
 
 
@@ -1441,6 +1446,8 @@ void Model::ins_preset (int bank, int pres, uint32_t *bits)
     if (! P) P = std::make_unique <Preset> ();
     for (k = 0; k < _ngroup; k++) P->_bits [k] = *bits++;
     _preset [bank][pres] = std::move (P);
+
+    if (bank == CRESC_BANK && pres <= cresc_pres ()) update_cresc ();
 }
 
 
@@ -1448,6 +1455,8 @@ void Model::del_preset (int bank, int pres)
 {
     if ((bank < 0) | (pres < 0) || (bank >= NBANK) || (pres >= NPRES)) return;
     std::move (&_preset [bank][pres + 1], &_preset [bank][NPRES], &_preset [bank][pres]);
+
+    if (bank == CRESC_BANK && pres <= cresc_pres ()) update_cresc ();
 }
 
 
