@@ -108,7 +108,7 @@ extern struct fonts     Fonts;
 extern struct xftcolors XftColors;
 extern struct xftfonts  XftFonts;
 extern X_scale_style    sca_dBsh, sca_dBsm, sca_dBlg, sca_Tatt, sca_Patt, sca_0_12, sca_Tu1, sca_Tu2, sca_Tu3, sca_Tu4;
-extern X_scale_style    sca_azim, sca_difg, sca_size, sca_trev, sca_spos, sca_Tfr, sca_Tmd, sca_Swl;
+extern X_scale_style    sca_azim, sca_difg, sca_size, sca_trev, sca_spos, sca_wbal, sca_Tfr, sca_Tmd, sca_Swl;
 extern X_button_style   ife0, ife1, ife2, ife3, but1, but2;
 extern X_menuwin_style  menu1;
 extern X_textln_style   text0, text1, text2, texti, textc;

@@ -95,7 +95,9 @@ enum class dipar
     tmodd       // tremulant amplitude
 };
 
-static constexpr int NDIPAR = 3;
+static constexpr int
+    NDIPAR = 3,
+    NAUPAR = 5;
 
 #define SWELL_MIN 0.0f
 #define SWELL_MAX 1.0f

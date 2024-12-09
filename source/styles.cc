@@ -31,7 +31,7 @@ struct xftcolors  XftColors;
 struct xftfonts   XftFonts;
 
 X_scale_style     sca_dBsm, sca_dBsh, sca_dBlg, sca_Tatt, sca_Patt, sca_0_12, sca_Tu1, sca_Tu2, sca_Tu3, sca_Tu4;
-X_scale_style     sca_azim, sca_difg, sca_size, sca_trev, sca_spos, sca_Tfr, sca_Tmd, sca_Swl;
+X_scale_style     sca_azim, sca_difg, sca_size, sca_trev, sca_spos, sca_wbal, sca_Tfr, sca_Tmd, sca_Swl;
 X_button_style    ife0, ife1, ife2, ife3, but1, but2;
 X_textln_style    text0, text1, text2, texti, textc;
 X_slider_style    sli1; 
@@ -281,12 +281,27 @@ void init_styles (X_display *disp, X_resman *xrm)
     sca_spos.fg = XftColors.main_fg;
     sca_spos.marg = 0;
     sca_spos.font = XftFonts.scales;
-    sca_spos.nseg = 4;
+    sca_spos.nseg = 8;
     sca_spos.set_tick ( 0, UISCALE( 10), -1.0, "B");
-    sca_spos.set_tick ( 1, UISCALE( 50), -0.5, 0);
-    sca_spos.set_tick ( 2, UISCALE( 90),  0.0, "C");
-    sca_spos.set_tick ( 3, UISCALE(130),  0.5, 0);
-    sca_spos.set_tick ( 4, UISCALE(170),  1.0, "F");
+    sca_spos.set_tick ( 1, UISCALE( 37), -0.667, "60");
+    sca_spos.set_tick ( 2, UISCALE( 50), -0.5, 0);
+    sca_spos.set_tick ( 3, UISCALE( 63), -0.333, "120");
+    sca_spos.set_tick ( 4, UISCALE( 90),  0.0, "C");
+    sca_spos.set_tick ( 5, UISCALE(117),  0.333, "120");
+    sca_spos.set_tick ( 6, UISCALE(130),  0.5, 0);
+    sca_spos.set_tick ( 7, UISCALE(143),  0.667, "60");
+    sca_spos.set_tick ( 8, UISCALE(170),  1.0, "F");
+
+    sca_wbal.bg = Colors.main_bg;
+    sca_wbal.fg = XftColors.main_fg;
+    sca_wbal.marg = 0;
+    sca_wbal.font = XftFonts.scales;
+    sca_wbal.nseg = 4;
+    sca_wbal.set_tick ( 0, UISCALE( 10), 0.0, "XY");
+    sca_wbal.set_tick ( 1, UISCALE( 50), 0.333, "-6");
+    sca_wbal.set_tick ( 2, UISCALE( 90), 0.414, "-3");
+    sca_wbal.set_tick ( 3, UISCALE(130), 0.5, "C");
+    sca_wbal.set_tick ( 4, UISCALE(170), 1.0, "W");
 
     sca_azim.bg = Colors.main_bg;
     sca_azim.fg = XftColors.main_fg;

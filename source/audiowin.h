@@ -66,7 +66,7 @@ private:
     X_resman       *_xresm;
     int             _xp, _yp;
     int             _xs, _ys;
-    X_hslider      *_slid [4];
+    X_hslider      *_slid [NAUPAR];
     int             _nasect;
     Asect           _asectd [NASECT];
     int             _asect;

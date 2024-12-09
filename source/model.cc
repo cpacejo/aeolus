@@ -535,7 +535,7 @@ void Model::init_iface (void)
     }
     send_event (TO_IFACE, M);
 
-    for (j = 0; j < 4; j++)
+    for (j = 0; j < NAUPAR; j++)
     {
         send_event (TO_IFACE, new M_ifc_aupar (0, -1, j, _audio->_instrpar [j]._val));
     }

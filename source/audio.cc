@@ -74,9 +74,14 @@ void Audio::init_audio (bool binaural)
     _audiopar [REVTIME]._val = _revtime = 4.0f;
     _audiopar [REVTIME]._min =  2.0f;
     _audiopar [REVTIME]._max =  7.0f;
+    // speaker/virtual microphone angle (0 -> left/right; 0.5 -> 45°; 1 -> forward)
     _audiopar [STPOSIT]._val =  0.5f;
     _audiopar [STPOSIT]._min = -1.0f;
     _audiopar [STPOSIT]._max =  1.0f;
+    // W component balance / microphone type
+    _audiopar [WBALANCE]._val =  0.5f;
+    _audiopar [WBALANCE]._min =  0.0f;
+    _audiopar [WBALANCE]._max =  1.0f;
 
     _reverb = Reverb (_fsamp);
     _reverb.set_t60mf (_revtime);
@@ -313,6 +318,13 @@ void Audio::proc_synth (int nframes)
     if (_binaural && static_cast<unsigned>(nframes) != _fsize) _binaural = false;
 #endif
 
+    // speaker / virtual microphone angle
+    float Xk = 0.0f, Yk = 0.0f;  // only used in stereo mode; configured below
+
+    if (_bform)
+    {
+        // no initialization required
+    }
 #if LIBSPATIALAUDIO_VERSION
     if (_binaural)
     {
@@ -321,6 +333,18 @@ void Audio::proc_synth (int nframes)
     else
 #endif
     {
+        // W     XY
+        // 0     1     X-Y figure-8
+        // ⅓     ⅔     "matching" / "velocity-optimized" (W -6 dB)
+        // √2-1  2-√2  M-S cardioid/figure-8 / "energy-optimized" / "rationalized" (W -3 dB)
+        // ½     ½     X-Y cardioid (W +0 dB)
+        // 1     0      omni
+        const float XYk = (1.0f - _audiopar [WBALANCE]._val);
+
+        // speaker / virtual microphone angle; note swap of sin/cos since STPOSIT = 0 is left/right
+        Xk = XYk * sinf (0.5f * std::numbers::pi_v<float> * _audiopar [STPOSIT]._val);
+        Yk = XYk * cosf (0.5f * std::numbers::pi_v<float> * _audiopar [STPOSIT]._val);
+
         for (j = 0; j < _nplay; j++) out [j] = _outbuf [j];
     }
 
@@ -338,39 +362,42 @@ void Audio::proc_synth (int nframes)
         for (j = 0; j < _nasect; j++) _asectp [j]->process (_audiopar [VOLUME]._val, W, X, Y, R);
         _reverb.process (PERIOD, _audiopar [VOLUME]._val, R, W, X, Y, Z);
 
+        // Note that W does *not* have a -3 dB adjustment applied to it.
+        // (Most literature assumes it does.)
+
         if (_bform)
 	{
             for (j = 0; j < PERIOD; j++)
             {
                 // by default, we output FuMa (i.e. WXYZ) order and maxN* normalization
-	        out [0][j] = W [j];
-	        out [1][j] = std::numbers::sqrt2_v<float> * X [j];
-	        out [2][j] = std::numbers::sqrt2_v<float> * Y [j];
-	        out [3][j] = std::numbers::sqrt2_v<float> * Z [j];
+                // (i.e. W is adjusted by -3 dB)
+	        out [0][j] = (0.5f * std::numbers::sqrt2_v<float>) * W [j];
+	        out [1][j] = X [j];
+	        out [2][j] = Y [j];
+	        out [3][j] = Z [j];
    	    }
             for (j = 0; j < 4; j++) out [j] += PERIOD;
 	}
 #if LIBSPATIALAUDIO_VERSION
         else if (_binaural)
 	{
-            for (j = 0; j < PERIOD; j++)
-            {
-                // libspatialaudio uses ACN (i.e. WYZX) order and SN3D normalization
-                // apply an extra factor of 2 as it seems to drop the volume a lot
-                out [0][j] = 2.0f * W [j];
-                out [1][j] = 2.0f * Y [j];
-                out [2][j] = 2.0f * Z [j];
-                out [3][j] = 2.0f * X [j];
-            }
+            // libspatialaudio uses ACN (i.e. WYZX) order and SN3D normalization
+            // (i.e. W is not adjusted)
+            std::copy_n (W, PERIOD, out [0]);
+            std::copy_n (Y, PERIOD, out [1]);
+            std::copy_n (Z, PERIOD, out [2]);
+            std::copy_n (X, PERIOD, out [3]);
             for (j = 0; j < 4; j++) out [j] += PERIOD;
         }
 #endif
         else
         {
+            const float Wk = _audiopar [WBALANCE]._val;
             for (j = 0; j < PERIOD; j++)
             {
-	        out [0][j] = W [j] + _audiopar [STPOSIT]._val * X [j] + Y [j];
-	        out [1][j] = W [j] + _audiopar [STPOSIT]._val * X [j] - Y [j];
+                const float mid = Wk * W [j] + Xk * X [j];
+                out [0][j] = mid + Yk * Y [j];
+                out [1][j] = mid - Yk * Y [j];
    	    }
             for (j = 0; j < 2; j++) out [j] += PERIOD;
         }

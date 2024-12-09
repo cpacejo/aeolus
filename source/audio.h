@@ -62,7 +62,7 @@ public:
     int  abspri (void) const { return _abspri; }
     int  relpri (void) const { return _relpri; }
     
-    enum { VOLUME, REVSIZE, REVTIME, STPOSIT };
+    enum { VOLUME, REVSIZE, REVTIME, STPOSIT, WBALANCE };
 
 protected:
 
@@ -139,7 +139,7 @@ protected:
     float          *_outbuf [8];
     std::unique_ptr <float[]> _outbuf_storage;
     uint16_t        _keymap [NNOTES];
-    Fparm           _audiopar [4];
+    Fparm           _audiopar [NAUPAR];
     float           _revsize;
     float           _revtime;
 #if LIBSPATIALAUDIO_VERSION
