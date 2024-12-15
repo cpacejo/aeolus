@@ -64,6 +64,7 @@ enum class midictl: std::uint8_t
     swell = 11,  // swell / expression controller
     bank  = 32,  // bank LSB
     hold  = 64,  // damper pedal (sustain)
+    sfz   = 67,  // sforzando
     ifelm = 80,  // stop control / general purpose controller 5
     tfreq = 76,  // tremulant frequency / sound controller 7 / vibrato rate
     tmodd = 92,  // tremulant amplitude / effects 2 depth / tremolo depth
@@ -118,6 +119,10 @@ static constexpr int
 
 static constexpr int CRESC_BANK = NBANK - 1;
 static constexpr int CRESC_LINKAGE = 1;
+
+static constexpr int SFZ_BANK = NBANK - 1;
+static constexpr int SFZ_PRES = NPRES - 1;
+static constexpr int SFZ_LINKAGE = 2;
 
 
 static constexpr int

@@ -103,6 +103,8 @@ Model::Model (Lfq_u32      *qcomm,
     _sc_cmode (0),
     _sc_group (0),
     _cresc_pos (0),
+    _sfz_depressed (false),
+    _sfz_engaged (false),
     _audio (0),
     _midi (0)
 {
@@ -407,6 +409,15 @@ void Model::proc_qmidi (void)
                 // Grand crescendo
                 set_cresc ((v * NPRES) / 128);
                 break;
+
+            case midictl::sfz:
+            {
+                // Sforzando reversible
+                const bool was_depressed = _sfz_depressed;
+                _sfz_depressed = v >= 64;
+                if (_sfz_depressed && !was_depressed) set_sfz (2);
+                break;
+            }
 
 	    case midictl::volume:
 		// Instrument volume; mapped as square of CC, per MIDI spec
@@ -777,6 +788,17 @@ void Model::set_cresc (int pos)
     // TODO: show indication of crescendo position in UI
 }
 
+
+void Model::set_sfz (int m)
+{
+    const bool engaged = (m == 2) ? !_sfz_engaged : static_cast<bool>(m);
+    if (engaged == _sfz_engaged) return;
+    _sfz_engaged = engaged;
+    update_sfz ();
+    // TODO: show indication of sFz setting in UI
+}
+
+
 void Model::update_cresc ()
 {
     if (_cresc_pos > 0)
@@ -784,28 +806,54 @@ void Model::update_cresc ()
         // load preset
         uint32_t d [NGROUP];
         if (get_preset (CRESC_BANK, cresc_pres (), d))
-        {
-            for (int g = 0; g < _ngroup; g++)
-            {
-                uint32_t s = d [g];
-                Group *const G = &_group [g];
-                for (int i = 0; i < G->_nifelm; i++)
-                {
-                    set_linkage (g, i, s & 1, CRESC_LINKAGE);
-                    s >>= 1;
-                }
-            }
-        }
+            apply_preset (d, CRESC_LINKAGE);
     }
     else
     {
         // close all stops
-        for (int g = 0; g < _ngroup; g++)
+        apply_null_preset (CRESC_LINKAGE);
+    }
+}
+
+
+void Model::update_sfz ()
+{
+    if (_sfz_engaged)
+    {
+        // load preset
+        uint32_t d [NGROUP];
+        if (get_preset (SFZ_BANK, SFZ_PRES, d))
+            apply_preset (d, SFZ_LINKAGE);
+    }
+    else
+    {
+        // close all stops
+        apply_null_preset (SFZ_LINKAGE);
+    }
+}
+
+
+void Model::apply_preset (uint32_t d [NGROUP], int linkage)
+{
+    for (int g = 0; g < _ngroup; g++)
+    {
+        uint32_t s = d [g];
+        Group *const G = &_group [g];
+        for (int i = 0; i < G->_nifelm; i++)
         {
-            Group *const G = &_group [g];
-            for (int i = 0; i < G->_nifelm; i++)
-                set_linkage (g, i, 0, CRESC_LINKAGE);
+            set_linkage (g, i, s & 1, linkage);
+            s >>= 1;
         }
+    }
+}
+
+void Model::apply_null_preset (int linkage)
+{
+    for (int g = 0; g < _ngroup; g++)
+    {
+        Group *const G = &_group [g];
+        for (int i = 0; i < G->_nifelm; i++)
+            set_linkage (g, i, 0, linkage);
     }
 }
 
@@ -1432,6 +1480,7 @@ void Model::set_preset (int bank, int pres, uint32_t *bits)
     for (k = 0; k < _ngroup; k++) P->_bits [k] = *bits++;
 
     if (bank == CRESC_BANK && pres == cresc_pres ()) update_cresc ();
+    if (bank == SFZ_BANK && pres == SFZ_PRES) update_sfz ();
 }
 
 
@@ -1448,6 +1497,7 @@ void Model::ins_preset (int bank, int pres, uint32_t *bits)
     _preset [bank][pres] = std::move (P);
 
     if (bank == CRESC_BANK && pres <= cresc_pres ()) update_cresc ();
+    if (bank == SFZ_BANK && pres <= SFZ_PRES) update_sfz ();
 }
 
 
@@ -1457,6 +1507,7 @@ void Model::del_preset (int bank, int pres)
     std::move (&_preset [bank][pres + 1], &_preset [bank][NPRES], &_preset [bank][pres]);
 
     if (bank == CRESC_BANK && pres <= cresc_pres ()) update_cresc ();
+    if (bank == SFZ_BANK && pres <= SFZ_PRES) update_sfz ();
 }
 
 

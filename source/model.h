@@ -181,8 +181,12 @@ private:
     void set_mconf (int i, uint16_t *d);
     void get_state (uint32_t *bits);
     void set_state (int bank, int pres);
-    void set_cresc (int pres);
+    void set_cresc (int pos);
+    void set_sfz (int m);
     void update_cresc ();
+    void update_sfz ();
+    void apply_preset (uint32_t d [NGROUP], int linkage = 0);
+    void apply_null_preset (int linkage = 0);
     int cresc_pres () const { return _cresc_pos - 1; }
     void midi_off (int mask);
     void retune (float freq, int temp);
@@ -227,6 +231,7 @@ private:
     int             _sc_cmode; // stop control command mode
     int             _sc_group; // stop control group number
     int             _cresc_pos;
+    bool            _sfz_depressed, _sfz_engaged;
     Midiconf        _chconf [8];
     std::unique_ptr <Preset> _preset [NBANK][NPRES];
     M_audio_info   *_audio;

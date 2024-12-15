@@ -203,6 +203,7 @@ void Imidi::proc_midi_event(const MidiEvent &ev)
 
 	    case midictl::cresc:
 	    case midictl::volume:
+	    case midictl::sfz:
 		// Instrument-wide and per-asection performance controls,
 		// accepted on control channels only.
 		if (f & 4)

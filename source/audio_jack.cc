@@ -321,6 +321,7 @@ void Audio_jack::proc_jmidi (int tmax)
 
 	    case midictl::cresc:
 	    case midictl::volume:
+	    case midictl::sfz:
 		// Instrument-wide and per-asection performance controls,
 		// accepted on control channels only.
 		if (f & 4)
