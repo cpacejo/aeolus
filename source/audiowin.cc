@@ -128,10 +128,8 @@ void Audiowin::setup (M_ifc_init *M)
     (_slid [Audio::REVSIZE] = new X_hslider (this, this, &sli1, &sca_size, UISCALE( 70), UISCALE(240), UISCALE(20), Audio::REVSIZE))->x_map ();
     (_slid [Audio::REVTIME] = new X_hslider (this, this, &sli1, &sca_trev, UISCALE( 70), UISCALE(275), UISCALE(20), Audio::REVTIME))->x_map ();
     (_slid [Audio::STPOSIT] = new X_hslider (this, this, &sli1, &sca_spos, UISCALE(305), UISCALE(275), UISCALE(20), Audio::STPOSIT))->x_map ();
-    (_slid [Audio::WBALANCE] = new X_hslider (this, this, &sli1, &sca_wbal, UISCALE(305), UISCALE(240), UISCALE(20), Audio::WBALANCE))->x_map ();
     (new X_hscale (this, &sca_size, UISCALE( 70), UISCALE(230), UISCALE(10)))->x_map ();
     (new X_hscale (this, &sca_trev, UISCALE( 70), UISCALE(265), UISCALE(10)))->x_map ();
-    (new X_hscale (this, &sca_wbal, UISCALE(305), UISCALE(230), UISCALE(10)))->x_map ();
     (new X_hscale (this, &sca_spos, UISCALE(305), UISCALE(265), UISCALE(10)))->x_map ();
     (new X_hscale (this, &sca_dBsh, UISCALE(520), UISCALE(265), UISCALE(10)))->x_map ();
     add_text (UISCALE( 10), UISCALE(240), UISCALE(50), UISCALE(20), "Delay",    &text0);

@@ -62,7 +62,7 @@ public:
     int  abspri (void) const { return _abspri; }
     int  relpri (void) const { return _relpri; }
     
-    enum { VOLUME, REVSIZE, REVTIME, STPOSIT, WBALANCE };
+    enum { VOLUME, REVSIZE, REVTIME, STPOSIT };
 
 protected:
 

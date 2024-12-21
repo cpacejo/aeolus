@@ -74,14 +74,10 @@ void Audio::init_audio (bool binaural)
     _audiopar [REVTIME]._val = _revtime = 4.0f;
     _audiopar [REVTIME]._min =  2.0f;
     _audiopar [REVTIME]._max =  7.0f;
-    // speaker/virtual microphone angle (0 -> left/right; 0.5 -> 45°; 1 -> forward)
+    // sine of speaker angle with X (0 -> forward; 0.5 -> 60°; 0.707 -> 90°; 0.8 -> 3-4-5 / equal M+S; 1 -> 180°)
     _audiopar [STPOSIT]._val =  0.5f;
-    _audiopar [STPOSIT]._min = -1.0f;
+    _audiopar [STPOSIT]._min =  0.0f;
     _audiopar [STPOSIT]._max =  1.0f;
-    // W component balance / microphone type
-    _audiopar [WBALANCE]._val =  0.5f;
-    _audiopar [WBALANCE]._min =  0.0f;
-    _audiopar [WBALANCE]._max =  1.0f;
 
     _reverb = Reverb (_fsamp);
     _reverb.set_t60mf (_revtime);
@@ -318,8 +314,8 @@ void Audio::proc_synth (int nframes)
     if (_binaural && static_cast<unsigned>(nframes) != _fsize) _binaural = false;
 #endif
 
-    // speaker / virtual microphone angle
-    float Xk = 0.0f, Yk = 0.0f;  // only used in stereo mode; configured below
+    // mid+side virtual microphone balance
+    float WXk = 0.0f, Yk = 0.0f;  // only used in stereo mode; configured below
 
     if (_bform)
     {
@@ -333,17 +329,14 @@ void Audio::proc_synth (int nframes)
     else
 #endif
     {
-        // W     XY
-        // 0     1     X-Y figure-8
-        // ⅓     ⅔     "matching" / "velocity-optimized" (W -6 dB)
-        // √2-1  2-√2  M-S cardioid/figure-8 / "energy-optimized" / "rationalized" (W -3 dB)
-        // ½     ½     X-Y cardioid (W +0 dB)
-        // 1     0      omni
-        const float XYk = (1.0f - _audiopar [WBALANCE]._val);
-
-        // speaker / virtual microphone angle; note swap of sin/cos since STPOSIT = 0 is left/right
-        Xk = XYk * sinf (0.5f * std::numbers::pi_v<float> * _audiopar [STPOSIT]._val);
-        Yk = XYk * cosf (0.5f * std::numbers::pi_v<float> * _audiopar [STPOSIT]._val);
+        // stereo; mid+side micing
+        // compute mid+side coefficients for an idempotent projection
+        // for the given speaker position (given as sine of angle with X)
+        // (note that WXk is half the mid gain, since it combines W and X as a cardioid)
+        const float s = _audiopar [STPOSIT]._val;
+        const float c = sqrtf (1.0f - s * s);  // positive; speakers never behind
+        WXk = 0.5f / (1.0f + c);
+        Yk = std::min (4.0f, 0.5f / s);  // limit to maximum gain of +12 dB (~14 deg separation)
 
         for (j = 0; j < _nplay; j++) out [j] = _outbuf [j];
     }
@@ -392,12 +385,12 @@ void Audio::proc_synth (int nframes)
 #endif
         else
         {
-            const float Wk = _audiopar [WBALANCE]._val;
             for (j = 0; j < PERIOD; j++)
             {
-                const float mid = Wk * W [j] + Xk * X [j];
-                out [0][j] = mid + Yk * Y [j];
-                out [1][j] = mid - Yk * Y [j];
+                const float mid = WXk * (W [j] + X [j]);
+                const float side = Yk * Y [j];
+                out [0][j] = mid + side;
+                out [1][j] = mid - side;
    	    }
             for (j = 0; j < 2; j++) out [j] += PERIOD;
         }

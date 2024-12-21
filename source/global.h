@@ -98,7 +98,7 @@ enum class dipar
 
 static constexpr int
     NDIPAR = 3,
-    NAUPAR = 5;
+    NAUPAR = 4;
 
 #define SWELL_MIN 0.0f
 #define SWELL_MAX 1.0f
