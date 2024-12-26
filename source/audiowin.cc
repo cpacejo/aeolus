@@ -135,8 +135,8 @@ void Audiowin::setup (M_ifc_init *M)
     add_text (UISCALE( 10), UISCALE(240), UISCALE(50), UISCALE(20), "Delay",    &text0);
     add_text (UISCALE( 10), UISCALE(275), UISCALE(50), UISCALE(20), "Time",     &text0);
     add_text (UISCALE(135), UISCALE(305), UISCALE(60), UISCALE(20), "Reverb",   &text0);
-    add_text (UISCALE(355), UISCALE(305), UISCALE(80), UISCALE(20), "Position", &text0);
-    add_text (UISCALE(570), UISCALE(305), UISCALE(60), UISCALE(20), "Volume",   &text0);
+    add_text (UISCALE(355), UISCALE(305), UISCALE(80), UISCALE(20), "Stereo width", &text0);
+    add_text (UISCALE(585), UISCALE(305), UISCALE(60), UISCALE(20), "Volume",   &text0);
 
     sprintf (s, "%s   Aeolus-%s   Audio settings", M->_appid, VERSION);
     x_set_title (s);

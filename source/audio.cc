@@ -74,9 +74,14 @@ void Audio::init_audio (bool binaural)
     _audiopar [REVTIME]._val = _revtime = 4.0f;
     _audiopar [REVTIME]._min =  2.0f;
     _audiopar [REVTIME]._max =  7.0f;
-    // sine of speaker angle with X (0 -> forward; 0.5 -> 60°; 0.707 -> 90°; 0.8 -> 3-4-5 / equal M+S; 1 -> 180°)
-    _audiopar [STPOSIT]._val =  0.5f;
-    _audiopar [STPOSIT]._min =  0.0f;
+    // -1 -> mono (no Y)
+    // -1 .. 0 -> amount to reduce Y by
+    // 0 -> stereo (Y = W)
+    // 0 .. 1 -> superstereo
+    // magnitude is sine squared of half angle to compress or expand sound stage by
+    // (so 0.75 expands sound stage by +120°, thus reproducing 180° sound stage on 60° separated speakers)
+    _audiopar [STPOSIT]._val =  0.0f;
+    _audiopar [STPOSIT]._min = -1.0f;
     _audiopar [STPOSIT]._max =  1.0f;
 
     _reverb = Reverb (_fsamp);
@@ -330,13 +335,28 @@ void Audio::proc_synth (int nframes)
 #endif
     {
         // stereo; mid+side micing
-        // compute mid+side coefficients for an idempotent projection
-        // for the given speaker position (given as sine of angle with X)
-        // (note that WXk is half the mid gain, since it combines W and X as a cardioid)
-        const float s = _audiopar [STPOSIT]._val;
-        const float c = sqrtf (1.0f - s * s);  // positive; speakers never behind
-        WXk = 0.5f / (1.0f + c);
-        Yk = std::min (4.0f, 0.5f / s);  // limit to maximum gain of +12 dB (~14 deg separation)
+
+        const float s2 = _audiopar [STPOSIT]._val;
+
+        if (s2 <= 0.0f)
+        {
+            // "compression"
+            const float s = sqrtf (-s2);
+            const float c = sqrtf (1.0f + s2);
+            WXk = 0.5f * (1.0f + s);
+            Yk = 0.5f * c;
+        }
+        else
+        {
+            // "expansion"
+            const float s = sqrtf (s2);
+            const float c = sqrtf (1.0f - s2);
+            // compute mid+side coefficients for an idempotent projection
+            // for the given sound stage expansion (given as sine of angle with X)
+            // (note that WXk is half the mid gain, since it combines W and X as a cardioid)
+            WXk = 0.5f / (1.0f + s);
+            Yk = std::min (4.0f, 0.5f / c);  // limit to maximum gain of +12 dB (~166 deg expansion)
+        }
 
         for (j = 0; j < _nplay; j++) out [j] = _outbuf [j];
     }

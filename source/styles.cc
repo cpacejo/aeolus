@@ -281,12 +281,16 @@ void init_styles (X_display *disp, X_resman *xrm)
     sca_spos.fg = XftColors.main_fg;
     sca_spos.marg = 0;
     sca_spos.font = XftFonts.scales;
-    sca_spos.nseg = 4;
-    sca_spos.set_tick ( 0, UISCALE( 10),  0.0, "F");
-    sca_spos.set_tick ( 1, UISCALE( 90),  0.5, "60");
-    sca_spos.set_tick ( 2, UISCALE(123),  0.707, "90");
-    sca_spos.set_tick ( 3, UISCALE(138),  0.8, "M+S");
-    sca_spos.set_tick ( 4, UISCALE(170),  1.0, "L/R");
+    sca_spos.nseg = 8;
+    sca_spos.set_tick ( 0, UISCALE( 10), -1.0, "M");
+    sca_spos.set_tick ( 1, UISCALE( 30), -0.75, "-120");
+    sca_spos.set_tick ( 2, UISCALE( 50), -0.5, 0);
+    sca_spos.set_tick ( 3, UISCALE( 70), -0.25, "-60");
+    sca_spos.set_tick ( 4, UISCALE( 90),  0.0, "S");
+    sca_spos.set_tick ( 5, UISCALE(110),  0.25, "+60");
+    sca_spos.set_tick ( 6, UISCALE(130),  0.5, 0);
+    sca_spos.set_tick ( 7, UISCALE(150),  0.75, "+120");
+    sca_spos.set_tick ( 8, UISCALE(170),  1.0, 0);
 
     sca_azim.bg = Colors.main_bg;
     sca_azim.fg = XftColors.main_fg;
