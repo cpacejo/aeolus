@@ -66,7 +66,7 @@ void H_scale::redraw (void)
 {
     X_draw D (dpy (), win (), dgc (), xft ());
     int    i;
-    char   s [4]; 
+    char   s [12];
 
     D.setcolor (XftColors.main_fg);
     D.setfont (XftFonts.scales);
