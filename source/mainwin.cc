@@ -66,7 +66,7 @@ void Splashwin::expose (XExposeEvent *E)
     D.drawstring (s, 0); 
     D.setfont (XftFonts.spla2);
     D.move (x, y);
-    D.drawstring ("(C) 2003-2022 Fons Adriaensen", 0); 
+    D.drawstring ("(C) 2003-2025 Fons Adriaensen and others", 0);
     D.move (x, y + UISCALE(50));
     D.drawstring ("This is free software, and you are welcome to distribute it", 0); 
     D.move (x, y + UISCALE(70));

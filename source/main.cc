@@ -83,7 +83,7 @@ static std::unique_ptr <Iface> iface;
 static void help (void)
 {
     fprintf (stderr, "\nAeolus %s\n\n",VERSION);
-    fprintf (stderr, "  (C) 2003-2022 Fons Adriaensen  <fons@linuxaudio.org>\n");
+    fprintf (stderr, "  (C) 2003-2025 Fons Adriaensen <fons@linuxaudio.org> and others\n");
     fprintf (stderr, "Options:\n");
     fprintf (stderr, "  -h                 Display this text\n");
     fprintf (stderr, "  -t                 Text mode user interface\n");
