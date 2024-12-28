@@ -24,7 +24,12 @@
 /rank         C  20  quintflute.ae0
 /rank         L  31  superoctave2.ae0
 /rank         R  23  sifflet1.ae0
-/rank         L  13  III_cymbel.ae0
+/rank         L  13  cymbel1-ctp.ae0
+/rank         L  13  cymbel2-ctp.ae0
+/rank         L  13  mixtur1-ctp.ae0
+/rank         L  13  mixtur2-ctp.ae0
+/rank         L  13  mixtur3-ctp.ae0
+/rank         L  13  mixtur4-ctp.ae0
 /rank         R  27  new_oboe_fa.ae0
 /swell
 /tremul       4.0  0.4
@@ -63,12 +68,14 @@
 /rank         C   5  flute8.ae0
 /rank         R   8  flute4.ae0
 /rank         R  10  flute2.ae0
-/rank         C   4  I_cymbel.ae0
 /rank         L  18  mixtur1-ctp.ae0
 /rank         L  18  mixtur2-ctp.ae0
 /rank         L  18  mixtur3-ctp.ae0
 /rank         L  18  mixtur4-ctp.ae0
 /rank         L  18  mixtur5-ctp.ae0
+/rank         C   4  cymbel1-ctp.ae0
+/rank         C   4  cymbel2-ctp.ae0
+/rank         C   4  cymbel3-ctp.ae0
 /rank         W   0  I_trumpet.ae0
 /divis/end
 
@@ -104,8 +111,8 @@
 /stop         0   1   7  
 /stop         0   1   8  
 /stop         0   1   9  
-/stop         0   1  10  
-/stop         0   1  11  
+/stop         0   1  10 11 12 13 14 15
+/stop         0   1  16
 /tremul       1       TR       Tremulant
 /group/end
 
@@ -133,15 +140,15 @@
 /stop         0   3   4  
 /stop         0   3   5  
 /stop         0   3   6  
-/stop         0   3  17  
+/stop         0   3  16
 /stop         0   3   7  
 /stop         0   3   8  
 /stop         0   3   9  
 /stop         0   3  10  
 /stop         0   3  11  
-/stop         0   3  12  
-/stop         0   3  13  14  15  16
-/stop         0   3  18  
+/stop         0   3  12 13 14 15
+/stop         0   3  17 18 19
+/stop         0   3  20
 /coupler      3   2   C1+2     I+II
 /coupler      3   1   C1+3     I+III
 /group/end
