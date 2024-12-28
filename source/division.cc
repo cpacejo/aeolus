@@ -72,7 +72,9 @@ void Division::process (void)
     float  *p, *q; 
 
     std::fill_n (_buff, NCHANN * PERIOD, 0);
-    for (i = 0; i < _nrank; i++) _ranks [i]->play (1);
+    for (i = 0; i < _nrank; i++)
+        if (_ranks [i])
+            _ranks [i]->play (1);
 
     g = 1.0f;
     if (_trem)
@@ -155,6 +157,8 @@ void Division::update (int note, int16_t mask)
     for (r = 0; r < _nrank; r++)
     {
 	W = _ranks [r].get ();
+	if (!W) continue;
+
         if (W->_nmask & NMASK_ALL)
 	{     
 	    if (fullmask & W->_nmask) W->note_on (note + 36);
@@ -173,6 +177,8 @@ void Division::update (uint16_t *keys)
     for (r = 0; r < _nrank; r++)
     {
 	W = _ranks [r].get ();
+	if (!W) continue;
+
         if (W->_nmask & NMASK_SET)
 	{
             W->_nmask ^= NMASK_SET;
@@ -205,6 +211,8 @@ void Division::set_div_mask (int bit, int linkage)
     for (r = 0; r < _nrank; r++)
     {
 	W = _ranks [r].get ();
+	if (!W) continue;
+
         const int d = (W->_nmask >> NKEYBD) & NMASK_LINKREPL;
         if (d)
         {
@@ -225,6 +233,8 @@ void Division::clr_div_mask (int bit, int linkage)
     for (r = 0; r < _nrank; r++)
     {
 	W = _ranks [r].get ();
+	if (!W) continue;
+
         const int d = (W->_nmask >> NKEYBD) & NMASK_LINKREPL;
         if (d)
         {
