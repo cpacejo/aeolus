@@ -19,6 +19,7 @@
 
 
 #include <algorithm>
+#include <forward_list>
 #include <memory>
 #include <stdlib.h>
 #include <stdio.h>
@@ -425,14 +426,13 @@ struct RepetitionPoint
     RepetitionPoint(int note, int num, int den)
     : note(note), num(num), den(den) {}
     int note, num, den;
-    std::unique_ptr <RepetitionPoint> next;
 };
       
-std::unique_ptr <RepetitionPoint> ParseRepetitions(const char* s)
+std::forward_list <RepetitionPoint> ParseRepetitions(const char* s)
 {
     char tag = '$';
-    std::unique_ptr <RepetitionPoint> r;
-    RepetitionPoint *cur = nullptr;
+    std::forward_list <RepetitionPoint> points;
+    auto cur = points.before_begin();
     while (*s && *s != tag)
       ++s;
     if (*s)
@@ -456,19 +456,9 @@ std::unique_ptr <RepetitionPoint> ParseRepetitions(const char* s)
           }
         }
       }
-      std::unique_ptr <RepetitionPoint> p = std::make_unique <RepetitionPoint> (note, num + wholes * den, den);
-      if (!r)
-      {
-        r = std::move(p);
-        cur = r.get();
-      }
-      else
-      {
-        cur->next = std::move(p);
-        cur = cur->next.get();
-      }
+      cur = points.emplace_after (cur, note, num + wholes * den, den);
     }
-    return r;
+    return points;
 }
 
 } // namespace
@@ -484,23 +474,22 @@ void Rankwave::gen_waves (Addsynth *D, float fsamp, float fbase, float *scale)
 #if REPETITION_POINTS
     float fn = D->_fn, fd = D->_fd,
           fbase_adj = fbase * D->_fn / (D->_fd * scale[9]);
-    std::unique_ptr <RepetitionPoint> points = ParseRepetitions( D->_comments );
-    RepetitionPoint *p = points.get();
+    std::forward_list <RepetitionPoint> points = ParseRepetitions( D->_comments );
+    auto p = points.begin();
     for (int i = _n0; i <= _n1; i++)
     {
-        if( p && i == p->note )
+        if( p != points.end() && i == p->note )
         {
           fbase_adj = 0;
           D->_fn = p->den * 8;
           D->_fd = p->num;
           if( D->_fn > 0 && D->_fd > 0 )
             fbase_adj = fbase * D->_fn / (D->_fd * scale[9]);
-          p = p->next.get();
+          ++p;
         }
         if( fbase_adj > 0 )
           _pipes [i - _n0].genwave (D, i - _n0, fsamp, ldexpf (fbase_adj * scale [i % 12], i / 12 - 5));
     }
-    points.reset ();
     D->_fn = fn;
     D->_fd = fd;
 #else
