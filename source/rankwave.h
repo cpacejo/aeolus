@@ -36,7 +36,7 @@ class Pipewave
 private:
 
     Pipewave () :
-        _p1 (0), _p2 (0), _l1 (0),
+        _p1 (0), _p2 (0), _l0 (0), _l1 (0),
         _k_s (0),  _k_r (0), 
         _m_r (0), _d_r (0), _d_a (0), _d_w (0),
 	_link (0), _sbit (0), _sdel (0), 
