@@ -30,7 +30,7 @@ struct temper
 };
 
 
-#define NSCALES 11
+#define NSCALES 14
 
 extern struct temper scales [NSCALES];
   

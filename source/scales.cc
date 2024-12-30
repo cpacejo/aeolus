@@ -44,18 +44,18 @@ float scale_pythagorean [12] =
 
 float scale_meanquart [12] = 
 {
-    1.0000000,
-    1.0449067,
-    1.1180340,
-    1.1962790,
-    1.2500000,
-    1.3374806,
-    1.3975425,
-    1.4953488,
-    1.5625000,
-    1.6718508,
-    1.7888544,
-    1.8691860
+    1.00000000,
+    1.04490673,
+    1.11803399,
+    1.19627902,
+    1.25000000,
+    1.33748061,
+    1.39754249,
+    1.49534878,
+    1.56250000,
+    1.67185076,
+    1.78885438,
+    1.86918598
 };
 
 
@@ -157,7 +157,7 @@ float scale_ahrend [12] =
 };
 
 
-// Vallotti
+// Vallotti-Barca
 
 float scale_vallotti [12] =
 {
@@ -213,6 +213,7 @@ float scale_lehman [12] =
     1.88136421,
 };
 
+
 // Pythagorean
 
 float scale_pure_cfg [12] =
@@ -232,19 +233,79 @@ float scale_pure_cfg [12] =
 };
 
 
+// The following three were contributed by Chris Pacejo.
+
+// 1/3 comma meantone (Francisco de Salinas, 1577)
+
+float scale_meanthird [12] =
+{
+    1.00000000,
+    1.03736221,
+    1.11572158,
+    1.20000000,
+    1.24483465,
+    1.33886590,
+    1.38888889,
+    1.49380158,
+    1.54961331,
+    1.66666667,
+    1.79256190,
+    1.85953597
+};
+
+
+// Neidhardt "Kleine Stadt", 1732
+
+float scale_kleine_stadt [12] =
+{
+    1.00000000,
+    1.05587996,
+    1.11992982,
+    1.18652431,
+    1.25424281,
+    1.33333333,
+    1.40783995,
+    1.49661606,
+    1.58381994,
+    1.67610496,
+    1.77777778,
+    1.87924087
+};
+
+
+// Neidhardt "Große Stadt", 1724
+
+float scale_grosse_stadt [12] =
+{
+    1.00000000,
+    1.05707299,
+    1.11992982,
+    1.18786496,
+    1.25565996,
+    1.33333333,
+    1.41102316,
+    1.49661606,
+    1.58381994,
+    1.67610496,
+    1.77978647,
+    1.88348995
+};
+
 
 struct temper scales [NSCALES] =
 {
     { "Pythagorean", "pyt", scale_pythagorean },
     { "Meantone 1/4", "mtq", scale_meanquart },
+    { "Meantone 1/3", "mtt", scale_meanthird },
     { "Werckmeister III", "we3", scale_werckm3 },
+    { "Neidhardt Große Stadt", "ngs", scale_grosse_stadt },
+    { "Neidhardt Kleine Stadt", "nks", scale_kleine_stadt },
     { "Kirnberger III", "ki3", scale_kirnberg3 },
     { "Well Tempered", "wt",  scale_welltemp },
     { "Equally Tempered", "et", scale_equaltemp },
     { "Vogel/Ahrend", "ahr", scale_ahrend },
-    { "Vallotti", "val", scale_vallotti },
+    { "Vallotti-Barca", "val", scale_vallotti },
     { "Kellner", "kel", scale_kellner },
     { "Lehman", "leh", scale_lehman },
     { "Pure C/F/G", "cfg", scale_pure_cfg },
 };
-
