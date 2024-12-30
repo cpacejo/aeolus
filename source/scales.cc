@@ -214,7 +214,7 @@ float scale_lehman [12] =
 };
 
 
-// Pythagorean
+// Pure C/F/G
 
 float scale_pure_cfg [12] =
 {
@@ -304,7 +304,7 @@ struct temper scales [NSCALES] =
     { "Well Tempered", "wt",  scale_welltemp },
     { "Equally Tempered", "et", scale_equaltemp },
     { "Vogel/Ahrend", "ahr", scale_ahrend },
-    { "Vallotti-Barca", "val", scale_vallotti },
+    { "Vallotti/Barca", "val", scale_vallotti },
     { "Kellner", "kel", scale_kellner },
     { "Lehman", "leh", scale_lehman },
     { "Pure C/F/G", "cfg", scale_pure_cfg },
