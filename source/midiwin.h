@@ -22,6 +22,7 @@
 #define __MIDIWIN_H
 
 
+#include <chrono>
 #include <clxclient.h>
 #include "midimatrix.h"
 #include "messages.h"
@@ -59,6 +60,8 @@ private:
     int             _preset;
     Midimatrix     *_matrix;
     X_tbutton      *_bpres [8];
+
+    std::chrono::steady_clock::time_point _press_time;
 };
 
 

@@ -23,6 +23,7 @@
 
 
 #include <clxclient.h>
+#undef index  // garbage macro defined by Xos.h
 #include <memory>
 #include "iface.h"
 #include "mainwin.h"

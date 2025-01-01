@@ -18,6 +18,7 @@
 // ----------------------------------------------------------------------------
 
 
+#include <chrono>
 #include "midiwin.h"
 #include "callbacks.h"
 #include "styles.h"
@@ -64,15 +65,21 @@ void Midiwin::handle_callb (int k, X_window *W, XEvent *E)
     switch (k)
     {
     case BUTTON | X_button::PRESS:
+        _press_time = std::chrono::steady_clock::now ();
+	break;
+
+    case BUTTON | X_button::RELSE:
     {
 	X_button      *B = (X_button *) W;
         XButtonEvent  *X = (XButtonEvent *) E;
+        const auto held = (std::chrono::steady_clock::now () - _press_time) >= std::chrono::seconds(2);
 
         set_butt (B->cbid ());
-        if (X->state & ShiftMask) _callb->handle_callb (CB_MIDI_SETCONF, this, 0);
+        if ((X->state & ShiftMask) || held) _callb->handle_callb (CB_MIDI_SETCONF, this, 0);
         else                      _callb->handle_callb (CB_MIDI_GETCONF, this, 0);
 	break;
     }
+
     case CB_MIDI_MODCONF:
         set_butt (-1);
         _callb->handle_callb (CB_MIDI_SETCONF, this, 0);
@@ -104,7 +111,7 @@ void Midiwin::setup (M_ifc_init *M)
     } 
 
     x += UISCALE(10);
-    add_text (x, y, UISCALE(200), UISCALE(20), "Shift-click to store preset", &text0, -1);
+    add_text (x, y, UISCALE(200), UISCALE(20), "Shift-click or hold to store preset", &text0, -1);
     _xs = _matrix->xsize () + UISCALE(20);
     _ys = _matrix->ysize () + UISCALE(60);
     H.position (_xp, _yp);
