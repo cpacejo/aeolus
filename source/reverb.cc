@@ -54,7 +54,7 @@ void Delelm::set_t60hi (float thi, float chi)
 
     g = powf (0.001f, _size / thi) / _gmf;
     t = (1 - g * g) / (2 * g * g * chi);
-    _whi = (sqrt (1 + 4 * t) - 1) / (2 * t); 
+    _whi = (sqrtf (1 + 4 * t) - 1) / (2 * t);
 } 
 
  
@@ -66,7 +66,7 @@ float Delelm::process (float x)
     _slo += _wlo * (t - _slo);
     t += _glo * _slo;
     _shi += _whi * (t - _shi);
-    t = x - _fb * _shi + 1e-10;
+    t = x - _fb * _shi + 1e-10f;
     _line [_i] = t;
     if (++_i == _size) _i = 0;
     return _shi + _fb * t;
