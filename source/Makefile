@@ -25,7 +25,7 @@ PKG_CONF ?= pkg-config
 
 VERSION = 0.10.4
 CPPFLAGS += -MMD -MP -DVERSION=\"$(VERSION)\" -DLIBDIR=\"$(LIBDIR)\"
-CXXFLAGS += -std=c++20 -O2 -Wall
+CXXFLAGS += -std=c++20 -O2 -ftree-vectorize -ffast-math -Wall
 
 
 .PHONY: all install clean

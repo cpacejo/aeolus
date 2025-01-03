@@ -19,6 +19,7 @@
 
 
 #include <algorithm>
+#include <cassert>
 #include <math.h>
 #include <memory>
 #include <numbers>
@@ -33,10 +34,29 @@ extern float exp2ap (float);
 
 Diffuser::Diffuser (int size, float c)
 {
+    assert(size >= PERIOD);
     _size = size;
-    _data = std::make_unique <float []> (size);
+    _data = std::make_unique <float []> (size + PERIOD - 1);
     _i = 0;
     _c = c;
+}
+
+
+void Diffuser::period_begin ()
+{
+    if (_i + PERIOD >= _size)
+    {
+        std::copy_n (_data.get(), _i + PERIOD - _size, _data.get() + _size);
+    }
+}
+
+void Diffuser::period_end ()
+{
+    if (_i >= _size)
+    {
+        std::copy_n (_data.get() + _size, _i - _size, _data.get());
+        _i -= _size;
+    }
 }
 
 
@@ -99,6 +119,7 @@ void Asection::process (float vol, float *W, float *X, float *Y, float *R)
     int     i;
     float   s, d, g, gw, gr, gx1, gy1, gx2, gy2;
     float   *p, t0, t1, t2, t3;
+    float   ta0 [PERIOD], ta1 [PERIOD], ta2 [PERIOD], ta3 [PERIOD];
     float   x [PERIOD];
     float   y [PERIOD];
 
@@ -129,16 +150,38 @@ void Asection::process (float vol, float *W, float *X, float *Y, float *R)
         y [i] = gy1 * (t3 - t0) + gy2 * (t2 - t1);
     }
 
-    gr = vol * _apar [REFLECT]._val;
+    _dif0.period_begin ();
     p = _base.get ();
+    for (i = 0; i < PERIOD; i++, p++)
+        ta0 [i] = _dif0.process (p [_offs [1]] + p [_offs  [5]] + p [_offs [11]] + p [_offs [15]] + 1e-20f);
+    _dif0.period_end ();
+
+    _dif1.period_begin ();
+    p = _base.get ();
+    for (i = 0; i < PERIOD; i++, p++)
+        ta1 [i] = _dif1.process (p [_offs [0]] + p [_offs  [4]] + p [_offs [10]] + p [_offs [14]] + 1e-20f);
+    _dif1.period_end ();
+
+    _dif2.period_begin ();
+    p = _base.get ();
+    for (i = 0; i < PERIOD; i++, p++)
+        ta2 [i] = _dif2.process (p [_offs [2]] + p [_offs  [6]] + p [_offs  [8]] + p [_offs [12]] + 2e-20f);
+    _dif2.period_end ();
+
+    _dif3.period_begin ();
+    p = _base.get ();
+    for (i = 0; i < PERIOD; i++, p++)
+        ta3 [i] = _dif3.process (p [_offs [3]] + p [_offs  [7]] + p [_offs  [9]] + p [_offs [13]] + 2e-20f);
+    _dif3.period_end ();
+
+    gr = vol * _apar [REFLECT]._val;
     for (i = 0; i < PERIOD; i++)
     {
-        t0 = _dif0.process (p [_offs [1]] + p [_offs  [5]] + p [_offs [11]] + p [_offs [15]] + 1e-20f);  
-        t1 = _dif1.process (p [_offs [0]] + p [_offs  [4]] + p [_offs [10]] + p [_offs [14]] + 1e-20f);  
-        t2 = _dif2.process (p [_offs [2]] + p [_offs  [6]] + p [_offs  [8]] + p [_offs [12]] + 2e-20f);  
-        t3 = _dif3.process (p [_offs [3]] + p [_offs  [7]] + p [_offs  [9]] + p [_offs [13]] + 2e-20f);  
-        p++;
-        s = t0 + t1 + t2 + t3; 
+        t0 = ta0 [i];
+        t1 = ta1 [i];
+        t2 = ta2 [i];
+        t3 = ta3 [i];
+        s = t0 + t1 + t2 + t3;
         _sw += 0.5f * (s - _sw);
         _sx += 0.5f * (0.4f * (t0 + t3) + 0.6f * (t2 + t1) - _sx);
         _sy += 0.5f * (0.9f * (t0 - t3) + 0.8f * (t2 - t1) - _sy);

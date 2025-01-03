@@ -46,9 +46,12 @@ public:
         w = x - _c * _data [_i];
         x = _data [_i] + _c * w;
         _data [_i] = w;
-        if (++_i == _size) _i = 0;
+        ++_i;  // wrapping is handled by period_end ()
         return x;
     }
+
+    void period_begin ();
+    void period_end ();
 
 private:
 
