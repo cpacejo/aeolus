@@ -42,6 +42,18 @@ Diffuser::Diffuser (int size, float c)
 }
 
 
+float Diffuser::process (float x)
+{
+    float w;
+
+    w = x - _c * _data [_i];
+    x = _data [_i] + _c * w;
+    _data [_i] = w;
+    ++_i;  // wrapping is handled by period_end ()
+    return x;
+}
+
+
 void Diffuser::period_begin ()
 {
     if (_i + PERIOD >= _size)
